@@ -263,7 +263,7 @@ export function PlatformShell({
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/aluno" className="cursor-pointer">
+                  <Link href="/perfil" className="cursor-pointer">
                     <Settings className="mr-2 size-4" />
                     Configuracoes
                   </Link>
