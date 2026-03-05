@@ -47,7 +47,7 @@
   - Definir tema customizado (cores INEMA, tipografia Inter/Source Serif 4)
   - Instalar componentes base: Button, Card, Input, Dialog, Dropdown, Avatar, Badge, Tabs, Progress, Toast
 
-- [ ] **0.2.1** Instalar bibliotecas de animacao e visual
+- [x] **0.2.1** Instalar bibliotecas de animacao e visual
   - `framer-motion` — animacoes de UI, transicoes de pagina, feedback de exercicios
   - `canvas-confetti` — efeito confetti (level-up, badge, 100% no quiz)
   - `lottie-react` — animacoes vetoriais ricas (badges, streaks, celebracoes)
@@ -55,7 +55,7 @@
   - `math-field` (MathLive) — input visual de equacoes matematicas
   - Criar pasta `src/components/animations/` para componentes de animacao reutilizaveis
 
-- [ ] **0.3** Configurar Supabase
+- [x] **0.3** Configurar Supabase
   - Criar projeto no Supabase
   - Instalar `@supabase/supabase-js` e `@supabase/ssr`
   - Configurar variáveis de ambiente (`.env.local`)
@@ -111,7 +111,7 @@
   - Instalar `vitest` + `@testing-library/react`
   - Criar `vitest.config.ts`
 
-- [ ] **0.8** Definir identidade visual INEMA
+- [x] **0.8** Definir identidade visual INEMA
   - Paleta de cores definitiva (primaria, secundaria, sucesso, erro, warning, neutros)
   - Registrar cores como CSS variables e Tailwind tokens em `design-tokens.ts`
   - Definir cor por materia (Matematica=azul, Ciencias=verde, Humanas=roxo, etc.)
@@ -130,7 +130,7 @@
 
 ### 1A. Schema do Banco — Usuarios
 
-- [ ] **1.1** Criar tabela `profiles`
+- [x] **1.1** Criar tabela `profiles`
   ```sql
   profiles:
     id (uuid, FK auth.users)
@@ -141,36 +141,36 @@
     updated_at (timestamp)
   ```
 
-- [ ] **1.2** Criar trigger Supabase para auto-criar profile ao registrar usuario
+- [x] **1.2** Criar trigger Supabase para auto-criar profile ao registrar usuario
 
-- [ ] **1.3** Configurar Row Level Security (RLS)
+- [x] **1.3** Configurar Row Level Security (RLS)
   - Usuarios so leem/editam proprio perfil
   - Professores leem perfis dos alunos da turma
   - Admin le/edita tudo
 
 ### 1B. Paginas de Auth
 
-- [ ] **1.4** Pagina de Login (`/login`)
+- [x] **1.4** Pagina de Login (`/login`)
   - Email + senha
   - Login com Google (OAuth)
   - Link "Esqueci a senha"
   - Redirect por role apos login
 
-- [ ] **1.5** Pagina de Registro (`/register`)
+- [x] **1.5** Pagina de Registro (`/register`)
   - Nome, email, senha
   - Selecao de role (aluno ou professor)
   - Confirmacao por email
 
-- [ ] **1.6** Pagina de Recuperacao de Senha (`/forgot-password`)
+- [x] **1.6** Pagina de Recuperacao de Senha (`/forgot-password`)
 
-- [ ] **1.7** Middleware de protecao de rotas
+- [x] **1.7** Middleware de protecao de rotas
   - Redirecionar nao-autenticados para `/login`
   - Redirecionar por role (`/aluno`, `/professor`, `/admin`)
   - Proteger rotas de admin
 
 ### 1C. Perfil do Usuario
 
-- [ ] **1.8** Pagina de perfil (`/perfil`)
+- [x] **1.8** Pagina de perfil (`/perfil`)
   - Editar nome, avatar
   - Ver estatisticas basicas (XP, streak, badges)
 
@@ -181,7 +181,7 @@
 
 ### 2A. Schema do Banco — Conteudo
 
-- [ ] **2.1** Criar tabelas de conteudo
+- [x] **2.1** Criar tabelas de conteudo
   ```sql
   subjects (materias):
     id, name, slug, description, icon, color, order, is_active
@@ -202,11 +202,11 @@
     exercise_data (jsonb, nullable)     → dados do exercicio
   ```
 
-- [ ] **2.2** Configurar RLS para conteudo
+- [x] **2.2** Configurar RLS para conteudo
   - Todos podem ler conteudo ativo
   - Apenas admin cria/edita/deleta
 
-- [ ] **2.3** Criar seeds com dados de exemplo
+- [x] **2.3** Criar seeds com dados de exemplo
   - 1 materia (ex: Matematica)
   - 2 cursos (ex: Algebra Basica, Geometria)
   - 3 unidades por curso
@@ -214,50 +214,50 @@
 
 ### 2B. Navegacao de Conteudo (Aluno)
 
-- [ ] **2.4** Pagina de Materias (`/materias`)
+- [x] **2.4** Pagina de Materias (`/materias`)
   - Grid de cards com icone, nome, descricao, cor
   - Barra de progresso por materia
 
-- [ ] **2.5** Pagina do Curso (`/materias/[slug]/[curso]`)
+- [x] **2.5** Pagina do Curso (`/materias/[slug]/[curso]`)
   - Header com info do curso
   - Lista de unidades (accordion)
   - Licoes dentro de cada unidade com icone de tipo e status (nao iniciado, em progresso, completo)
 
-- [ ] **2.6** Pagina da Licao — Video (`/licao/[id]`)
+- [x] **2.6** Pagina da Licao — Video (`/licao/[id]`)
   - Player YouTube embed responsivo (react-player ou lite-youtube-embed)
   - Transcricao abaixo do video (colapsavel)
   - Botoes: "Marcar como completo", "Proxima licao"
   - Sidebar com navegacao da unidade
 
-- [ ] **2.7** Pagina da Licao — Artigo (`/licao/[id]`)
+- [x] **2.7** Pagina da Licao — Artigo (`/licao/[id]`)
   - Renderizacao MDX com KaTeX para formulas
   - Tempo estimado de leitura
   - Botoes: "Marcar como completo", "Proxima licao"
 
-- [ ] **2.8** Pagina da Licao — Exercicio (`/licao/[id]`)
+- [x] **2.8** Pagina da Licao — Exercicio (`/licao/[id]`)
   - Ver FASE 3 (exercicios interativos)
 
 ### 2C. Painel Admin — Gestao de Conteudo
 
-- [ ] **2.9** Dashboard Admin (`/admin`)
+- [x] **2.9** Dashboard Admin (`/admin`)
   - Estatisticas gerais: total de alunos, professores, cursos, licoes
   - Graficos de uso (ultimos 30 dias)
 
-- [ ] **2.10** CRUD de Materias (`/admin/materias`)
+- [x] **2.10** CRUD de Materias (`/admin/materias`)
   - Listagem com tabela (DataTable shadcn)
   - Criar/editar materia (formulario com Zod validation)
   - Reordenar (drag-and-drop)
   - Ativar/desativar
 
-- [ ] **2.11** CRUD de Cursos (`/admin/cursos`)
+- [x] **2.11** CRUD de Cursos (`/admin/cursos`)
   - Mesma estrutura: listagem, criar/editar, reordenar
   - Upload de thumbnail (Supabase Storage)
 
-- [ ] **2.12** CRUD de Unidades (`/admin/unidades`)
+- [x] **2.12** CRUD de Unidades (`/admin/unidades`)
   - Vinculado a um curso
   - Reordenar dentro do curso
 
-- [ ] **2.13** CRUD de Licoes (`/admin/licoes`)
+- [x] **2.13** CRUD de Licoes (`/admin/licoes`)
   - Selecao de tipo (video, artigo, exercicio)
   - Editor de video: campo para YouTube URL + preview
   - Editor de artigo: textarea Markdown com preview ao vivo + suporte KaTeX
@@ -270,7 +270,7 @@
 
 ### 3A. Schema do Banco — Exercicios
 
-- [ ] **3.1** Criar tabelas de exercicios
+- [x] **3.1** Criar tabelas de exercicios
   ```sql
   exercises:
     id, lesson_id (FK), title, instructions, order
@@ -291,7 +291,7 @@
     - matching           → associar pares (arrastar)
   ```
 
-- [ ] **3.2** Criar tabela de respostas dos alunos
+- [x] **3.2** Criar tabela de respostas dos alunos
   ```sql
   student_answers:
     id, student_id (FK), question_id (FK), answer (jsonb),
@@ -301,7 +301,7 @@
 
 ### 3B. Componentes de Exercicio
 
-- [ ] **3.3** Componente `ExercisePlayer`
+- [x] **3.3** Componente `ExercisePlayer`
   - Recebe array de questoes
   - Navegacao entre questoes (anterior/proxima) com transicao Framer Motion (slide)
   - Barra de progresso animada (questao X de Y)
@@ -313,55 +313,55 @@
   - Sistema de hints (dicas progressivas com reveal animado)
   - Resumo final com animacao Lottie (estrelas, trofeu) + confetti se nota alta
 
-- [ ] **3.4** Componente `MultipleChoice`
+- [x] **3.4** Componente `MultipleChoice`
   - Radio buttons estilizados
   - Highlight verde/vermelho apos resposta
   - Suporte a imagens nas opcoes
   - Suporte a KaTeX nas opcoes
 
-- [ ] **3.5** Componente `MultipleSelect`
+- [x] **3.5** Componente `MultipleSelect`
   - Checkboxes estilizados
   - Feedback parcial ("2 de 3 corretas")
 
-- [ ] **3.6** Componente `TrueFalse`
+- [x] **3.6** Componente `TrueFalse`
   - Dois botoes grandes (Verdadeiro / Falso)
 
-- [ ] **3.7** Componente `NumericInput`
+- [x] **3.7** Componente `NumericInput`
   - Input numerico com validacao
   - Tolerancia configuravel (ex: aceitar 3.14 e 3.1416)
   - Suporte a KaTeX no enunciado
 
-- [ ] **3.7.1** Componente `MathInput`
+- [x] **3.7.1** Componente `MathInput`
   - Wrapper do MathLive (math-field) para input visual de equacoes
   - Teclado matematico virtual integrado (fracoes, expoentes, raizes, integrais)
   - Converte input visual para LaTeX para validacao
   - Suporte mobile (teclado virtual touch-friendly)
 
-- [ ] **3.8** Componente `TextInput`
+- [x] **3.8** Componente `TextInput`
   - Input de texto com match exato ou case-insensitive
   - Suporte a multiplas respostas aceitas
 
-- [ ] **3.9** Componente `FillBlank`
+- [x] **3.9** Componente `FillBlank`
   - Texto com lacunas clicaveis
   - Dropdown ou input por lacuna
 
-- [ ] **3.10** Componente `Ordering`
+- [x] **3.10** Componente `Ordering`
   - Lista de itens arrastáveis (drag-and-drop com @dnd-kit)
   - Verificacao de ordem correta
 
-- [ ] **3.11** Componente `Matching`
+- [x] **3.11** Componente `Matching`
   - Duas colunas para associar pares
   - Drag-and-drop ou clique para conectar
 
 ### 3C. Exercicios Avancados (Exatas)
 
-- [ ] **3.13** Componente `DesmosGraph`
+- [x] **3.13** Componente `DesmosGraph`
   - Embed da API Desmos Calculator para graphing interativo
   - Aluno pode plotar funcoes, mover pontos, ver intersecoes
   - Professor define estado inicial do grafico e condicao de resposta correta
   - Responsivo e touch-friendly
 
-- [ ] **3.14** Componente `GeoGebraEmbed`
+- [x] **3.14** Componente `GeoGebraEmbed`
   - Embed do GeoGebra para geometria interativa
   - Transformacoes geometricas (rotacao, reflexao, translacao) com drag
   - Construcoes geometricas (bissetriz, mediatrizes, etc.)
@@ -369,7 +369,7 @@
 
 ### 3D. Admin — Builder de Exercicios
 
-- [ ] **3.15** Interface de criacao de exercicios (`/admin/exercicios/novo`)
+- [x] **3.15** Interface de criacao de exercicios (`/admin/exercicios/novo`)
   - Selecionar tipo de questao (incluindo MathInput, DesmosGraph, GeoGebra)
   - Formulario dinamico por tipo
   - Preview ao vivo da questao
@@ -383,7 +383,7 @@
 
 ### 4A. Schema do Banco — Progresso
 
-- [ ] **4.1** Criar tabelas de progresso
+- [x] **4.1** Criar tabelas de progresso
   ```sql
   lesson_progress:
     id, student_id (FK), lesson_id (FK),
@@ -407,30 +407,30 @@
 
 ### 4B. Logica de Maestria
 
-- [ ] **4.2** Implementar algoritmo de maestria
+- [x] **4.2** Implementar algoritmo de maestria
   - Acertar 1x na primeira tentativa → Familiar (50pts)
   - Acertar 2x consecutivas → Proficient (80pts)
   - Acertar 3x consecutivas em sessoes diferentes → Mastered (100pts)
   - Errar apos Mastered → volta para Proficient
   - Calculo de Course Mastery = media ponderada dos skills
 
-- [ ] **4.3** API de atualizacao de progresso
+- [x] **4.3** API de atualizacao de progresso
   - POST `/api/progress/lesson` → marcar licao como completa
   - POST `/api/progress/exercise` → registrar resposta + atualizar maestria
   - GET `/api/progress/course/[id]` → progresso do curso
 
 ### 4C. Visualizacao de Progresso
 
-- [ ] **4.4** Barra de maestria por skill (componente visual)
+- [x] **4.4** Barra de maestria por skill (componente visual)
   - 4 estados com cores: cinza, amarelo, azul, verde
   - Animacao de transicao entre niveis (Framer Motion: spring + color interpolation)
   - Particulas/brilho ao atingir novo nivel (Lottie)
 
-- [ ] **4.5** Mapa de progresso do curso
+- [x] **4.5** Mapa de progresso do curso
   - Arvore visual das unidades e licoes
   - Icones de status por licao (cadeado, em progresso, completo, maestria)
 
-- [ ] **4.6** Dashboard do aluno (`/aluno`)
+- [x] **4.6** Dashboard do aluno (`/aluno`)
   - Cursos em andamento com barra de progresso
   - Skills recentes praticados
   - Proximas licoes recomendadas
@@ -443,7 +443,7 @@
 
 ### 5A. Schema do Banco — Gamificacao
 
-- [ ] **5.1** Criar tabelas de gamificacao
+- [x] **5.1** Criar tabelas de gamificacao
   ```sql
   student_stats:
     id, student_id (FK),
@@ -471,7 +471,7 @@
 
 ### 5B. Sistema de XP
 
-- [ ] **5.2** Implementar ganho de XP
+- [x] **5.2** Implementar ganho de XP
   - Completar video: +25 XP
   - Completar artigo: +25 XP
   - Completar exercicio: +10 XP por questao correta (bonus +50 se 100%)
@@ -480,7 +480,7 @@
   - Atingir maestria em skill: +150 XP
   - Manter streak: +50 XP/dia (bonus progressivo)
 
-- [ ] **5.3** Sistema de niveis
+- [x] **5.3** Sistema de niveis
   - Level 1: 0 XP
   - Level 2: 500 XP
   - Level 3: 1.500 XP
@@ -494,13 +494,13 @@
 
 ### 5C. Streaks
 
-- [ ] **5.4** Implementar logica de streak
+- [x] **5.4** Implementar logica de streak
   - Incrementa se `last_active_date` = ontem
   - Reseta se `last_active_date` < ontem
   - Atualiza `longest_streak` se `current_streak` > `longest_streak`
   - Atividade minima para contar: completar pelo menos 1 licao ou exercicio
 
-- [ ] **5.5** UI de streak
+- [x] **5.5** UI de streak
   - Icone de fogo com contador no header (Framer Motion: pulse animation quando ativo)
   - Animacao Lottie de fogo ao manter streak
   - Calendario de atividade (estilo GitHub contributions) com cores graduais
@@ -508,13 +508,13 @@
 
 ### 5D. Badges
 
-- [ ] **5.6** Criar badges iniciais (seed)
+- [x] **5.6** Criar badges iniciais (seed)
   - Streak: 3 dias, 7 dias, 30 dias, 100 dias, 365 dias
   - XP: 1.000, 5.000, 10.000, 50.000, 100.000
   - Mastery: 1 skill mastered, 10, 50, 100
   - Especiais: primeiro login, primeiro exercicio, primeiro curso completo, nota 100% em quiz
 
-- [ ] **5.7** Engine de verificacao de badges
+- [x] **5.7** Engine de verificacao de badges
   - Verificar condicoes apos cada acao relevante
   - Componente `AnimatedBadge` ao desbloquear:
     - Badge aparece com animacao Lottie (brilho, rotacao)
@@ -522,21 +522,21 @@
     - Toast persistente com preview do badge
     - Som sutil de conquista (opcional, respeitando preferencia do usuario)
 
-- [ ] **5.8** Pagina de badges (`/aluno/badges`)
+- [x] **5.8** Pagina de badges (`/aluno/badges`)
   - Grid com todos os badges (desbloqueados e bloqueados)
   - Badges bloqueados em cinza com dica da condicao
   - Filtro por categoria
 
 ### 5E. Avatares
 
-- [ ] **5.9** Sistema de avatares
+- [x] **5.9** Sistema de avatares
   - Avatares desbloqueaveis por nivel/XP
   - Selecionar avatar ativo no perfil
   - Avatar exibido no header e ranking
 
 ### 5F. Ranking
 
-- [ ] **5.10** Leaderboard (`/aluno/ranking`)
+- [x] **5.10** Leaderboard (`/aluno/ranking`)
   - Top 50 alunos por XP (semanal e geral)
   - Ranking por turma (se vinculado a professor)
   - Posicao do aluno destacada
@@ -548,7 +548,7 @@
 
 ### 6A. Schema do Banco — Avaliacoes
 
-- [ ] **6.1** Criar tabelas de avaliacoes
+- [x] **6.1** Criar tabelas de avaliacoes
   ```sql
   assessments:
     id, title, type (enum: 'lesson_quiz', 'unit_quiz', 'unit_test', 'course_challenge'),
@@ -569,7 +569,7 @@
 
 ### 6B. Interface de Avaliacao
 
-- [ ] **6.2** Componente `AssessmentPlayer`
+- [x] **6.2** Componente `AssessmentPlayer`
   - Tela cheia (focus mode)
   - Timer contando regressivamente (se configurado)
   - Navegacao livre entre questoes (marcar para revisao)
@@ -577,23 +577,23 @@
   - Botao "Finalizar tentativa" com confirmacao
   - Tela de resultado: nota, tempo, questoes corretas/erradas, review detalhado
 
-- [ ] **6.3** Quiz de licao
+- [x] **6.3** Quiz de licao
   - 3-5 questoes rapidas ao final de cada licao
   - Sem limite de tempo
   - Tentativas ilimitadas
 
-- [ ] **6.4** Quiz de unidade
+- [x] **6.4** Quiz de unidade
   - 10-15 questoes cobrindo toda a unidade
   - Opcional: limite de tempo
   - Ate 3 tentativas
 
-- [ ] **6.5** Teste de unidade
+- [x] **6.5** Teste de unidade
   - 20-30 questoes (mais rigoroso)
   - Limite de tempo
   - Ate 2 tentativas
   - Nota minima para "passar"
 
-- [ ] **6.6** Desafio do curso (Course Challenge)
+- [x] **6.6** Desafio do curso (Course Challenge)
   - Questoes aleatorias de todas as unidades
   - Ponderado por maestria (mais questoes de skills fracos)
   - 1 tentativa por semana
@@ -605,7 +605,7 @@
 
 ### 7A. Schema do Banco — Turmas
 
-- [ ] **7.1** Criar tabelas de turmas
+- [x] **7.1** Criar tabelas de turmas
   ```sql
   classes:
     id, teacher_id (FK), name, description, code (unique, 6 chars),
@@ -632,55 +632,55 @@
 
 ### 7B. Gestao de Turmas
 
-- [ ] **7.2** Pagina de turmas (`/professor/turmas`)
+- [x] **7.2** Pagina de turmas (`/professor/turmas`)
   - Lista de turmas ativas
   - Criar nova turma (gera codigo automatico)
   - Editar/arquivar turma
 
-- [ ] **7.3** Pagina da turma (`/professor/turmas/[id]`)
+- [x] **7.3** Pagina da turma (`/professor/turmas/[id]`)
   - Lista de alunos com avatar, nome, XP, streak
   - Botao "Adicionar aluno" (por codigo ou email)
   - Remover aluno da turma
   - Tabs: Alunos | Atribuicoes | Relatorios
 
-- [ ] **7.4** Aluno entrar na turma
+- [x] **7.4** Aluno entrar na turma
   - Pagina `/aluno/turma/entrar` com input de codigo
   - Ou link direto compartilhavel
 
 ### 7C. Atribuicoes (Assignments)
 
-- [ ] **7.5** Criar atribuicao (`/professor/turmas/[id]/atribuir`)
+- [x] **7.5** Criar atribuicao (`/professor/turmas/[id]/atribuir`)
   - Selecionar conteudo (buscar por materia > curso > unidade > licao)
   - Definir prazo (opcional)
   - Atribuir para turma inteira ou alunos especificos
 
-- [ ] **7.6** Visualizar atribuicoes da turma
+- [x] **7.6** Visualizar atribuicoes da turma
   - Lista com status: pendente, em andamento, completa, atrasada
   - Porcentagem de conclusao da turma
   - Nota media
 
-- [ ] **7.7** Aluno visualizar atribuicoes
+- [x] **7.7** Aluno visualizar atribuicoes
   - Lista em `/aluno/tarefas` com prazos e status
   - Notificacao de nova atribuicao
 
 ### 7D. Relatorios do Professor
 
-- [ ] **7.8** Relatorio de atividade da turma
+- [x] **7.8** Relatorio de atividade da turma
   - Tempo medio de estudo por aluno (ultimos 7/30 dias)
   - Licoes completadas por aluno
   - Grafico de atividade da turma ao longo do tempo
 
-- [ ] **7.9** Relatorio de maestria
+- [x] **7.9** Relatorio de maestria
   - Heatmap: alunos (linhas) x skills (colunas) x nivel de maestria (cor)
   - Identificar skills onde a turma esta fraca
   - Filtrar por unidade/curso
 
-- [ ] **7.10** Relatorio de atribuicoes
+- [x] **7.10** Relatorio de atribuicoes
   - Notas por aluno por atribuicao
   - Exportar para CSV
   - Media, mediana, distribuicao de notas
 
-- [ ] **7.11** Relatorio individual do aluno
+- [x] **7.11** Relatorio individual do aluno
   - Progresso detalhado
   - Skills dominados vs. em dificuldade
   - Historico de atividade
@@ -693,12 +693,12 @@
 
 ### 8A. Infraestrutura IA
 
-- [ ] **8.1** Configurar API route para chat (`/api/ai/chat`)
+- [x] **8.1** Configurar API route para chat (`/api/ai/chat`)
   - Integrar SDK Anthropic (`@anthropic-ai/sdk`)
   - Streaming de respostas (Server-Sent Events)
   - Rate limiting por usuario (ex: 50 mensagens/dia no free, ilimitado premium)
 
-- [ ] **8.2** Criar system prompt do tutor
+- [x] **8.2** Criar system prompt do tutor
   - Personalidade: paciente, encorajador, socratico
   - NUNCA dar resposta direta
   - Sempre fazer perguntas que guiem o raciocinio
@@ -706,7 +706,7 @@
   - Adaptar linguagem a faixa etaria do aluno
   - Contexto: materia atual, licao atual, historico de respostas
 
-- [ ] **8.3** Criar tabela de historico de chat
+- [x] **8.3** Criar tabela de historico de chat
   ```sql
   ai_conversations:
     id, student_id (FK), lesson_id (FK, nullable),
@@ -719,23 +719,23 @@
 
 ### 8B. Interface do Tutor
 
-- [ ] **8.4** Componente `AiTutor` (chat flutuante)
+- [x] **8.4** Componente `AiTutor` (chat flutuante)
   - Botao flutuante no canto inferior direito
   - Painel de chat expansivel (slide-up)
   - Mensagens com suporte a Markdown + KaTeX
   - Indicador de "digitando..." durante streaming
   - Sugestoes de perguntas iniciais contextuais
 
-- [ ] **8.5** Integracao com exercicios
+- [x] **8.5** Integracao com exercicios
   - Botao "Pedir ajuda ao tutor" em cada questao
   - Tutor recebe contexto: enunciado, opcoes, resposta do aluno, tentativa numero
   - Guia sem revelar resposta
 
-- [ ] **8.6** Integracao com artigos e videos
+- [x] **8.6** Integracao com artigos e videos
   - Botao "Tenho uma duvida" na pagina de licao
   - Tutor recebe contexto do conteudo atual
 
-- [ ] **8.7** Historico de conversas
+- [x] **8.7** Historico de conversas
   - Aluno pode ver conversas anteriores
   - Professor pode ver conversas dos alunos (para identificar dificuldades)
 
@@ -744,7 +744,7 @@
 ## FASE 9 — Landing Page e Paginas Publicas
 > Paginas que convertem visitantes em usuarios
 
-- [ ] **9.1** Landing page (`/`)
+- [x] **9.1** Landing page (`/`)
   - Hero section com proposta de valor
   - Demonstracao visual da plataforma (screenshots/video)
   - Secoes: Para Alunos, Para Professores, Para Escolas
@@ -753,16 +753,16 @@
   - CTA de cadastro
   - Footer com links uteis
 
-- [ ] **9.2** Pagina "Sobre" (`/sobre`)
+- [x] **9.2** Pagina "Sobre" (`/sobre`)
   - Missao e visao
   - Equipe
   - Parceiros
 
-- [ ] **9.3** Pagina de preview de conteudo (`/explorar`)
+- [x] **9.3** Pagina de preview de conteudo (`/explorar`)
   - Navegar materias e cursos sem login
   - Preview de 1-2 licoes por curso (incentivo a cadastrar)
 
-- [ ] **9.4** SEO e Meta tags
+- [x] **9.4** SEO e Meta tags
   - Open Graph tags para compartilhamento
   - Sitemap.xml dinamico
   - robots.txt
@@ -773,7 +773,7 @@
 ## FASE 10 — PWA e Mobile
 > Transformar em Progressive Web App para funcionar como app no celular
 
-- [ ] **10.1** Configurar PWA
+- [x] **10.1** Configurar PWA
   - Manifest.json (nome, icones, cores, orientacao)
   - Service Worker (next-pwa ou serwist)
   - Splash screen
@@ -819,13 +819,13 @@
     - Professor: criar turma → atribuir tarefa → ver relatorio
   - Testes de integracao nas APIs
 
-- [ ] **11.4** Error handling
+- [x] **11.4** Error handling
   - Error boundaries em React
   - Paginas de erro customizadas (404, 500)
   - Toast de erros amigaveis (nunca mostrar stack trace)
   - Logging de erros (Sentry ou similar)
 
-- [ ] **11.5** Loading states
+- [x] **11.5** Loading states
   - Skeletons em todas as paginas com dados async
   - Spinners nos botoes de acao
   - Optimistic updates onde fizer sentido
