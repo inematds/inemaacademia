@@ -36,6 +36,24 @@ CREATE TRIGGER on_profile_created
   AFTER INSERT ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_profile();
 
+-- Helper function to get current user role without recursion
+CREATE OR REPLACE FUNCTION public.get_my_role()
+RETURNS text AS $$
+  SELECT role::text FROM public.profiles WHERE id = auth.uid()
+$$ LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public;
+
+-- ========================
+-- FOREIGN KEYS (progress/stats tables)
+-- ========================
+
+ALTER TABLE public.course_progress ADD CONSTRAINT course_progress_course_id_courses_id_fk FOREIGN KEY (course_id) REFERENCES public.courses(id);
+ALTER TABLE public.course_progress ADD CONSTRAINT course_progress_student_id_profiles_id_fk FOREIGN KEY (student_id) REFERENCES public.profiles(id);
+ALTER TABLE public.lesson_progress ADD CONSTRAINT lesson_progress_student_id_profiles_id_fk FOREIGN KEY (student_id) REFERENCES public.profiles(id);
+ALTER TABLE public.lesson_progress ADD CONSTRAINT lesson_progress_lesson_id_lessons_id_fk FOREIGN KEY (lesson_id) REFERENCES public.lessons(id);
+ALTER TABLE public.skill_mastery ADD CONSTRAINT skill_mastery_student_id_profiles_id_fk FOREIGN KEY (student_id) REFERENCES public.profiles(id);
+ALTER TABLE public.skill_mastery ADD CONSTRAINT skill_mastery_lesson_id_lessons_id_fk FOREIGN KEY (lesson_id) REFERENCES public.lessons(id);
+ALTER TABLE public.student_stats ADD CONSTRAINT student_stats_student_id_profiles_id_fk FOREIGN KEY (student_id) REFERENCES public.profiles(id);
+
 -- ========================
 -- ROW LEVEL SECURITY
 -- ========================
@@ -53,19 +71,11 @@ CREATE POLICY "Users can update own profile"
 
 CREATE POLICY "Admins can view all profiles"
   ON public.profiles FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (auth.uid() = id OR public.get_my_role() = 'admin');
 
 CREATE POLICY "Teachers can view student profiles"
   ON public.profiles FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'professor'
-    )
-  );
+  USING (auth.uid() = id OR public.get_my_role() = 'professor');
 
 -- Content tables (read-only for all, write for admin)
 ALTER TABLE public.subjects ENABLE ROW LEVEL SECURITY;
@@ -81,11 +91,7 @@ CREATE POLICY "Anyone can read active subjects"
 
 CREATE POLICY "Admins can manage subjects"
   ON public.subjects FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (public.get_my_role() = 'admin');
 
 -- Courses
 CREATE POLICY "Anyone can read active courses"
@@ -94,11 +100,7 @@ CREATE POLICY "Anyone can read active courses"
 
 CREATE POLICY "Admins can manage courses"
   ON public.courses FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (public.get_my_role() = 'admin');
 
 -- Units
 CREATE POLICY "Anyone can read active units"
@@ -107,11 +109,7 @@ CREATE POLICY "Anyone can read active units"
 
 CREATE POLICY "Admins can manage units"
   ON public.units FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (public.get_my_role() = 'admin');
 
 -- Lessons
 CREATE POLICY "Anyone can read active lessons"
@@ -120,11 +118,7 @@ CREATE POLICY "Anyone can read active lessons"
 
 CREATE POLICY "Admins can manage lessons"
   ON public.lessons FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (public.get_my_role() = 'admin');
 
 -- Lesson content
 CREATE POLICY "Anyone can read lesson content"
@@ -133,11 +127,7 @@ CREATE POLICY "Anyone can read lesson content"
 
 CREATE POLICY "Admins can manage lesson content"
   ON public.lesson_content FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (public.get_my_role() = 'admin');
 
 -- Exercises and questions
 ALTER TABLE public.exercises ENABLE ROW LEVEL SECURITY;
@@ -149,11 +139,7 @@ CREATE POLICY "Anyone can read exercises"
 
 CREATE POLICY "Admins can manage exercises"
   ON public.exercises FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (public.get_my_role() = 'admin');
 
 CREATE POLICY "Anyone can read questions"
   ON public.questions FOR SELECT
@@ -161,11 +147,7 @@ CREATE POLICY "Anyone can read questions"
 
 CREATE POLICY "Admins can manage questions"
   ON public.questions FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (public.get_my_role() = 'admin');
 
 -- Student answers
 ALTER TABLE public.student_answers ENABLE ROW LEVEL SECURITY;
@@ -176,11 +158,7 @@ CREATE POLICY "Students can manage own answers"
 
 CREATE POLICY "Teachers can view student answers"
   ON public.student_answers FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('professor', 'admin')
-    )
-  );
+  USING (public.get_my_role() IN ('professor', 'admin'));
 
 -- Progress tables
 ALTER TABLE public.lesson_progress ENABLE ROW LEVEL SECURITY;
@@ -206,35 +184,19 @@ CREATE POLICY "Students manage own stats"
 
 CREATE POLICY "Teachers can view student progress"
   ON public.lesson_progress FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('professor', 'admin')
-    )
-  );
+  USING (public.get_my_role() IN ('professor', 'admin'));
 
 CREATE POLICY "Teachers can view student mastery"
   ON public.skill_mastery FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('professor', 'admin')
-    )
-  );
+  USING (public.get_my_role() IN ('professor', 'admin'));
 
 CREATE POLICY "Teachers can view student course progress"
   ON public.course_progress FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('professor', 'admin')
-    )
-  );
+  USING (public.get_my_role() IN ('professor', 'admin'));
 
 CREATE POLICY "Teachers can view student stats"
   ON public.student_stats FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('professor', 'admin')
-    )
-  );
+  USING (public.get_my_role() IN ('professor', 'admin'));
 
 -- Gamification tables
 ALTER TABLE public.badges ENABLE ROW LEVEL SECURITY;
@@ -248,11 +210,7 @@ CREATE POLICY "Anyone can read badges"
 
 CREATE POLICY "Admins can manage badges"
   ON public.badges FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (public.get_my_role() = 'admin');
 
 CREATE POLICY "Students manage own badges"
   ON public.student_badges FOR ALL
@@ -264,11 +222,7 @@ CREATE POLICY "Anyone can read avatars"
 
 CREATE POLICY "Admins can manage avatars"
   ON public.avatars FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (public.get_my_role() = 'admin');
 
 CREATE POLICY "Students manage own avatars"
   ON public.student_avatars FOR ALL
@@ -345,11 +299,7 @@ CREATE POLICY "Anyone can read assessments"
 
 CREATE POLICY "Admins can manage assessments"
   ON public.assessments FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (public.get_my_role() = 'admin');
 
 CREATE POLICY "Anyone can read assessment questions"
   ON public.assessment_questions FOR SELECT
@@ -357,11 +307,7 @@ CREATE POLICY "Anyone can read assessment questions"
 
 CREATE POLICY "Admins can manage assessment questions"
   ON public.assessment_questions FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (public.get_my_role() = 'admin');
 
 CREATE POLICY "Students manage own attempts"
   ON public.assessment_attempts FOR ALL
@@ -369,11 +315,7 @@ CREATE POLICY "Students manage own attempts"
 
 CREATE POLICY "Teachers view assessment attempts"
   ON public.assessment_attempts FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('professor', 'admin')
-    )
-  );
+  USING (public.get_my_role() IN ('professor', 'admin'));
 
 -- AI tables
 ALTER TABLE public.ai_conversations ENABLE ROW LEVEL SECURITY;
@@ -393,11 +335,7 @@ CREATE POLICY "Students manage own messages"
 
 CREATE POLICY "Teachers view student conversations"
   ON public.ai_conversations FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('professor', 'admin')
-    )
-  );
+  USING (public.get_my_role() IN ('professor', 'admin'));
 
 CREATE POLICY "Teachers view student messages"
   ON public.ai_messages FOR SELECT
@@ -405,8 +343,6 @@ CREATE POLICY "Teachers view student messages"
     EXISTS (
       SELECT 1 FROM public.ai_conversations c
       WHERE c.id = ai_messages.conversation_id
-      AND EXISTS (
-        SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('professor', 'admin')
-      )
+      AND public.get_my_role() IN ('professor', 'admin')
     )
   );
