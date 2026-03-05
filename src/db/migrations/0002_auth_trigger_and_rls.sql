@@ -241,26 +241,41 @@ CREATE POLICY "Teachers manage own classes"
 CREATE POLICY "Students can view their classes"
   ON public.classes FOR SELECT
   USING (
-    EXISTS (
+    auth.uid() = teacher_id
+    OR EXISTS (
       SELECT 1 FROM public.class_students WHERE class_id = classes.id AND student_id = auth.uid()
     )
   );
 
-CREATE POLICY "Teachers manage class students"
-  ON public.class_students FOR ALL
+-- Split class_students policies to avoid circular recursion with classes table
+CREATE POLICY "Teachers view class students"
+  ON public.class_students FOR SELECT
+  USING (auth.uid() = student_id OR public.get_my_role() IN ('professor', 'admin'));
+
+CREATE POLICY "Teachers insert class students"
+  ON public.class_students FOR INSERT
+  WITH CHECK (
+    auth.uid() = student_id
+    OR EXISTS (
+      SELECT 1 FROM public.classes WHERE id = class_students.class_id AND teacher_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Teachers update class students"
+  ON public.class_students FOR UPDATE
   USING (
     EXISTS (
       SELECT 1 FROM public.classes WHERE id = class_students.class_id AND teacher_id = auth.uid()
     )
   );
 
-CREATE POLICY "Students can view own class membership"
-  ON public.class_students FOR SELECT
-  USING (auth.uid() = student_id);
-
-CREATE POLICY "Students can join classes"
-  ON public.class_students FOR INSERT
-  WITH CHECK (auth.uid() = student_id);
+CREATE POLICY "Teachers delete class students"
+  ON public.class_students FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.classes WHERE id = class_students.class_id AND teacher_id = auth.uid()
+    )
+  );
 
 CREATE POLICY "Teachers manage assignments"
   ON public.assignments FOR ALL
@@ -281,11 +296,8 @@ CREATE POLICY "Students manage own submissions"
 CREATE POLICY "Teachers view submissions"
   ON public.assignment_submissions FOR SELECT
   USING (
-    EXISTS (
-      SELECT 1 FROM public.assignments a
-      JOIN public.assignment_submissions s ON s.assignment_id = a.id
-      WHERE a.teacher_id = auth.uid()
-    )
+    auth.uid() = student_id
+    OR public.get_my_role() IN ('professor', 'admin')
   );
 
 -- Assessment tables
