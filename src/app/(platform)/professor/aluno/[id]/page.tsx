@@ -92,7 +92,7 @@ export default async function StudentDetailPage({ params }: Props) {
     <div className="space-y-6 p-6">
       <div className="flex items-center gap-4">
         <Avatar className="h-16 w-16">
-          <AvatarImage src={(student.avatar_url as string) ?? undefined} />
+          <AvatarImage src={(student.avatar_url as string) ?? undefined} alt="" />
           <AvatarFallback className="text-xl">
             {(student.full_name as string).charAt(0).toUpperCase()}
           </AvatarFallback>

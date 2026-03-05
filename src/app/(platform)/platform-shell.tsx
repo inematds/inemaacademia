@@ -173,7 +173,7 @@ export function PlatformShell({
       </a>
 
       {/* Desktop sidebar */}
-      <aside className="hidden w-64 shrink-0 border-r bg-card lg:block">
+      <aside aria-label="Barra lateral de navegacao" className="hidden w-64 shrink-0 border-r bg-card lg:block">
         <div className="flex h-full flex-col overflow-y-auto">
           {sidebarContent}
         </div>

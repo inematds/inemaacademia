@@ -363,7 +363,14 @@ export function ExercisePlayer({ questions, onComplete }: ExercisePlayerProps) {
             <Badge variant="outline">{question.points} pontos</Badge>
           )}
         </div>
-        <div className="relative h-2 w-full overflow-hidden rounded-full bg-primary/10">
+        <div
+          className="relative h-2 w-full overflow-hidden rounded-full bg-primary/10"
+          role="progressbar"
+          aria-valuenow={Math.round(progressPercent)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Progresso: questao ${currentIndex + 1} de ${totalQuestions}`}
+        >
           <motion.div
             className="h-full bg-primary rounded-full"
             initial={false}

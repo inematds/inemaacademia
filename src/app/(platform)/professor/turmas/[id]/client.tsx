@@ -274,7 +274,7 @@ export function ClassDetailClient({
                     <TableHead className="text-center">Nivel</TableHead>
                     <TableHead className="text-center">XP</TableHead>
                     <TableHead className="text-center hidden sm:table-cell">Ofensiva</TableHead>
-                    <TableHead className="text-center">Entrou em</TableHead>
+                    <TableHead className="text-center hidden sm:table-cell">Entrou em</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -285,7 +285,7 @@ export function ClassDetailClient({
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
                             {student.avatarUrl && (
-                              <AvatarImage src={student.avatarUrl} />
+                              <AvatarImage src={student.avatarUrl} alt="" />
                             )}
                             <AvatarFallback className="text-xs">
                               {student.name
@@ -310,13 +310,13 @@ export function ClassDetailClient({
                           {student.xp}
                         </div>
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell className="text-center hidden sm:table-cell">
                         <div className="flex items-center justify-center gap-1 text-sm">
                           <Flame className="h-3.5 w-3.5 text-orange-500" />
                           {student.streak}
                         </div>
                       </TableCell>
-                      <TableCell className="text-center text-sm text-muted-foreground">
+                      <TableCell className="text-center text-sm text-muted-foreground hidden sm:table-cell">
                         {new Date(student.joinedAt).toLocaleDateString(
                           "pt-BR"
                         )}

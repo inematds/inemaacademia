@@ -219,7 +219,7 @@ export function ReportsClient({
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
               {selectedStudent.avatarUrl && (
-                <AvatarImage src={selectedStudent.avatarUrl} />
+                <AvatarImage src={selectedStudent.avatarUrl} alt="" />
               )}
               <AvatarFallback>
                 {selectedStudent.name
@@ -431,17 +431,17 @@ export function ReportsClient({
               </Button>
             </div>
 
-            <Card>
+            <Card className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Aluno</TableHead>
-                    <TableHead className="text-center">Nivel</TableHead>
+                    <TableHead className="text-center hidden sm:table-cell">Nivel</TableHead>
                     <TableHead className="text-center">XP</TableHead>
-                    <TableHead className="text-center">Ofensiva</TableHead>
-                    <TableHead className="text-center">Tempo de estudo</TableHead>
-                    <TableHead className="text-center">Licoes</TableHead>
-                    <TableHead className="text-center">Ultima atividade</TableHead>
+                    <TableHead className="text-center hidden sm:table-cell">Ofensiva</TableHead>
+                    <TableHead className="text-center">Tempo</TableHead>
+                    <TableHead className="text-center hidden sm:table-cell">Licoes</TableHead>
+                    <TableHead className="text-center hidden md:table-cell">Ultima atividade</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -467,7 +467,7 @@ export function ReportsClient({
                           <div className="flex items-center gap-3">
                             <Avatar className="h-7 w-7">
                               {student.avatarUrl && (
-                                <AvatarImage src={student.avatarUrl} />
+                                <AvatarImage src={student.avatarUrl} alt="" />
                               )}
                               <AvatarFallback className="text-xs">
                                 {student.name
@@ -483,7 +483,7 @@ export function ReportsClient({
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-center hidden sm:table-cell">
                           <Badge variant="outline">{student.level}</Badge>
                         </TableCell>
                         <TableCell className="text-center">
@@ -492,7 +492,7 @@ export function ReportsClient({
                             {student.xp}
                           </div>
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-center hidden sm:table-cell">
                           <div className="flex items-center justify-center gap-1 text-sm">
                             <Flame className="h-3.5 w-3.5 text-orange-500" />
                             {student.streak}
@@ -505,10 +505,10 @@ export function ReportsClient({
                               : student.time30dMinutes
                           )}
                         </TableCell>
-                        <TableCell className="text-center text-sm">
+                        <TableCell className="text-center text-sm hidden sm:table-cell">
                           {student.completedLessons}
                         </TableCell>
-                        <TableCell className="text-center text-xs text-muted-foreground">
+                        <TableCell className="text-center text-xs text-muted-foreground hidden md:table-cell">
                           {student.lastActive
                             ? new Date(
                                 student.lastActive
@@ -524,8 +524,8 @@ export function ReportsClient({
 
           {/* Mastery Heatmap */}
           <TabsContent value="mastery" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                 <span className="text-sm text-muted-foreground">Legenda:</span>
                 {Object.entries(MASTERY_LABELS).map(([key, label]) => (
                   <div key={key} className="flex items-center gap-1.5">
