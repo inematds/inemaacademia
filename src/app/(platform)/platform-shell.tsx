@@ -55,7 +55,7 @@ const navItems = [
   { href: "/materias", label: "Materias", icon: BookOpen },
   { href: "/aluno", label: "Painel", icon: LayoutDashboard },
   { href: "/aluno/progresso", label: "Progresso", icon: GraduationCap },
-  { href: "/aluno/conquistas", label: "Conquistas", icon: Trophy },
+  { href: "/aluno/badges", label: "Conquistas", icon: Trophy },
 ];
 
 function getBreadcrumbs(pathname: string) {
