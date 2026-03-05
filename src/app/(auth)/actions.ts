@@ -78,7 +78,7 @@ export async function registerAction(
 
   const supabase = await createClient();
 
-  const { data, error } = await supabase.auth.signUp({
+  const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -86,6 +86,7 @@ export async function registerAction(
         full_name: fullName,
         role,
       },
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback`,
     },
   });
 
@@ -93,24 +94,10 @@ export async function registerAction(
     if (error.message.includes("already registered")) {
       return { error: "Este e-mail já está cadastrado." };
     }
-    return { error: "Erro ao criar conta. Tente novamente." };
+    return { error: error.message };
   }
 
-  // Insert profile into profiles table
-  if (data.user) {
-    const { error: profileError } = await supabase.from("profiles").insert({
-      id: data.user.id,
-      full_name: fullName,
-      role,
-    });
-
-    if (profileError) {
-      console.error("Error creating profile:", profileError);
-      // Don't fail registration if profile creation fails
-      // It can be retried later or handled by a database trigger
-    }
-  }
-
+  // Profile is auto-created by database trigger (handle_new_user)
   redirect("/login?registered=true");
 }
 
