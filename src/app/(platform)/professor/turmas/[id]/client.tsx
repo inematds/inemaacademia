@@ -388,10 +388,10 @@ export function ClassDetailClient({
             <div className="space-y-3">
               {assignments.map((assignment) => (
                 <Card key={assignment.id}>
-                  <CardContent className="p-4 flex items-center justify-between">
+                  <CardContent className="p-4">
                     <div>
                       <h4 className="font-medium">{assignment.title}</h4>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
                         <Badge variant="outline" className="text-xs">
                           {CONTENT_TYPE_LABELS[assignment.contentType] ??
                             assignment.contentType}
