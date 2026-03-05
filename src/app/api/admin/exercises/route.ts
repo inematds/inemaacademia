@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
+import { adminLimiter } from "@/lib/rate-limit";
 
 const questionSchema = z.object({
   type: z.enum([
@@ -37,6 +38,19 @@ export async function POST(request: NextRequest) {
 
   if (!user) {
     return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+  }
+
+  const rateResult = adminLimiter.check(user.id);
+  if (!rateResult.allowed) {
+    return NextResponse.json(
+      { error: "Muitas requisicoes. Tente novamente em breve." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(Math.ceil((rateResult.retryAfterMs ?? 0) / 1000)),
+        },
+      },
+    );
   }
 
   const { data: profile } = await supabase

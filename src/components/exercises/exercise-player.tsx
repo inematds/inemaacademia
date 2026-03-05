@@ -276,7 +276,7 @@ export function ExercisePlayer({ questions, onComplete }: ExercisePlayerProps) {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="text-7xl font-black mb-2"
+              className="text-5xl sm:text-7xl font-black mb-2"
             >
               {score}%
             </motion.div>
@@ -381,7 +381,7 @@ export function ExercisePlayer({ questions, onComplete }: ExercisePlayerProps) {
           isAnswered && !answerState?.isCorrect && "shadow-[0_0_30px_rgba(239,68,68,0.2)]"
         )}
       >
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={question.id}
@@ -463,11 +463,12 @@ export function ExercisePlayer({ questions, onComplete }: ExercisePlayerProps) {
       </Card>
 
       {/* Action buttons */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button
           variant="outline"
           onClick={handlePrev}
           disabled={currentIndex === 0}
+          className="min-h-[44px]"
         >
           Anterior
         </Button>
@@ -477,13 +478,13 @@ export function ExercisePlayer({ questions, onComplete }: ExercisePlayerProps) {
             <Button
               onClick={handleCheck}
               disabled={!hasAnswer}
-              className="min-w-[160px]"
+              className="min-h-[44px] flex-1 sm:min-w-[160px]"
             >
               Verificar resposta
             </Button>
           )}
           {isAnswered && (
-            <Button onClick={handleNext} className="min-w-[160px]">
+            <Button onClick={handleNext} className="min-h-[44px] flex-1 sm:min-w-[160px]">
               {currentIndex < totalQuestions - 1
                 ? "Proxima"
                 : "Ver resultado"}

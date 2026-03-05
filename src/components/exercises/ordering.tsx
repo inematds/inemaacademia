@@ -66,7 +66,7 @@ function SortableItem({
       {...attributes}
       {...listeners}
       className={cn(
-        "flex items-center gap-4 rounded-xl border-2 p-4 transition-all duration-200",
+        "flex items-center gap-3 sm:gap-4 rounded-xl border-2 px-3 py-3 sm:p-4 transition-all duration-200 min-h-[48px] touch-manipulation",
         isDragging && "z-50 shadow-2xl scale-105 opacity-90",
         !answered &&
           !isDragging &&
@@ -92,7 +92,7 @@ function SortableItem({
       </span>
       <span className="flex-1 text-base" dangerouslySetInnerHTML={{ __html: id }} />
       {!answered && (
-        <span className="text-muted-foreground text-lg select-none">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center text-muted-foreground text-lg select-none" aria-hidden="true">
           &#x2630;
         </span>
       )}
@@ -118,7 +118,11 @@ export function Ordering({
   const [items, setItems] = useState<string[]>(initialItems);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })

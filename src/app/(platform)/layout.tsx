@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUserProfile, getUserStats } from "@/db/queries/content";
 import { Toaster } from "@/components/ui/sonner";
 import { PlatformShell } from "./platform-shell";
+import { PushNotificationPrompt } from "@/components/push-notification-prompt";
 
 export default async function PlatformLayout({
   children,
@@ -38,6 +39,7 @@ export default async function PlatformLayout({
     >
       {children}
       <Toaster position="top-center" richColors />
+      <PushNotificationPrompt />
     </PlatformShell>
   );
 }

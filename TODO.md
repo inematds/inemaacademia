@@ -778,18 +778,18 @@
   - Service Worker (next-pwa ou serwist)
   - Splash screen
 
-- [ ] **10.2** Responsividade completa
+- [x] **10.2** Responsividade completa
   - Revisar todas as paginas para mobile (< 640px)
   - Menu hamburger com sidebar colapsavel
   - Exercicios touch-friendly (botoes maiores, drag-and-drop com touch)
   - Video player responsivo
 
-- [ ] **10.3** Offline basico
+- [x] **10.3** Offline basico
   - Cachear paginas ja visitadas
   - Exibir mensagem "Voce esta offline" com conteudo cacheado
   - Sincronizar progresso quando reconectar
 
-- [ ] **10.4** Notificacoes push
+- [x] **10.4** Notificacoes push
   - Lembrete de streak ("Nao perca seu streak de X dias!")
   - Nova atribuicao do professor
   - Badge desbloqueado
@@ -799,20 +799,20 @@
 ## FASE 11 — Otimizacao e Polish
 > Performance, acessibilidade, UX refinado
 
-- [ ] **11.1** Performance
+- [x] **11.1** Performance
   - Lighthouse score > 90 em todas as metricas
   - Lazy loading de imagens e componentes pesados
   - Prefetch de proximas paginas provaveis
   - Otimizar queries do banco (indices, views materializadas)
 
-- [ ] **11.2** Acessibilidade
+- [x] **11.2** Acessibilidade
   - Navegacao completa por teclado
   - Labels ARIA em todos os componentes interativos
   - Contraste WCAG AA em todas as cores
   - Focus indicators visiveis
   - Alt text em todas as imagens
 
-- [ ] **11.3** Testes
+- [x] **11.3** Testes
   - Testes unitarios nos componentes de exercicio (Vitest)
   - Testes E2E nos fluxos criticos (Playwright):
     - Registro → login → fazer exercicio → ver progresso
@@ -835,22 +835,22 @@
 ## FASE 12 — Deploy e Infraestrutura
 > Colocar no ar com monitoramento
 
-- [ ] **12.1** Deploy no Vercel
+- [x] **12.1** Deploy no Vercel
   - Conectar repositorio Git
   - Configurar variaveis de ambiente
   - Dominio customizado
   - Preview deploys por branch
 
-- [ ] **12.2** Monitoramento
+- [x] **12.2** Monitoramento
   - Vercel Analytics (performance)
   - Sentry (erros)
   - Supabase Dashboard (banco, auth, storage)
 
-- [ ] **12.3** Backups
+- [x] **12.3** Backups
   - Backup automatico do Supabase (diario)
   - Documentar procedimento de restore
 
-- [ ] **12.4** Seguranca
+- [x] **12.4** Seguranca
   - Rate limiting nas APIs
   - CORS configurado
   - Headers de seguranca (CSP, HSTS)

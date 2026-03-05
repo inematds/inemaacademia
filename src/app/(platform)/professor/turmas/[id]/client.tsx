@@ -266,14 +266,14 @@ export function ClassDetailClient({
               </CardContent>
             </Card>
           ) : (
-            <Card>
+            <Card className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Aluno</TableHead>
                     <TableHead className="text-center">Nivel</TableHead>
                     <TableHead className="text-center">XP</TableHead>
-                    <TableHead className="text-center">Ofensiva</TableHead>
+                    <TableHead className="text-center hidden sm:table-cell">Ofensiva</TableHead>
                     <TableHead className="text-center">Entrou em</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>

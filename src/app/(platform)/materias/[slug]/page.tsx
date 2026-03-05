@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Calculator,
   FlaskConical,
@@ -121,10 +122,12 @@ export default async function SubjectCoursesPage({
             <Card className="group h-full transition-shadow hover:shadow-md cursor-pointer">
               {course.thumbnailUrl && (
                 <div className="relative h-36 overflow-hidden rounded-t-xl">
-                  <img
+                  <Image
                     src={course.thumbnailUrl}
                     alt={course.name}
-                    className="size-full object-cover"
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover"
                   />
                 </div>
               )}

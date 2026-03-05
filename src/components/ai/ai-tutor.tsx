@@ -178,7 +178,7 @@ export function AiTutor({
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1">
+            <ScrollArea className="flex-1" role="log" aria-label="Mensagens do chat" aria-live="polite">
               <div className="flex flex-col gap-3 p-4">
                 {messages.length === 0 ? (
                   <div className="flex flex-col items-center gap-4 py-8 text-center">

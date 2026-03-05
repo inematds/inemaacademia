@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { progressLimiter } from "@/lib/rate-limit";
 
 export async function GET(
   _request: NextRequest,
@@ -17,6 +18,19 @@ export async function GET(
       return NextResponse.json(
         { error: "Nao autorizado." },
         { status: 401 },
+      );
+    }
+
+    const rateResult = progressLimiter.check(user.id);
+    if (!rateResult.allowed) {
+      return NextResponse.json(
+        { error: "Muitas requisicoes. Tente novamente em breve." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil((rateResult.retryAfterMs ?? 0) / 1000)),
+          },
+        },
       );
     }
 

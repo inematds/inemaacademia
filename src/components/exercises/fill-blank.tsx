@@ -70,9 +70,10 @@ export function FillBlank({
                   onChange={(e) => handleChange(currentBlank, e.target.value)}
                   disabled={answered}
                   placeholder="..."
+                  aria-label={`Espaco em branco ${currentBlank + 1}`}
                   className={cn(
                     "inline-block w-32 rounded-lg border-2 border-dashed px-3 py-1 text-center text-base font-semibold outline-none transition-all duration-300",
-                    "bg-muted/30 focus:border-primary focus:ring-2 focus:ring-primary/20",
+                    "bg-muted/30 focus:border-primary focus:ring-2 focus:ring-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                     answered && isBlankCorrect(currentBlank)
                       ? "border-green-500 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400"
                       : answered && !isBlankCorrect(currentBlank)

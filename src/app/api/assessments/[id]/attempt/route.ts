@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+
+const updateAttemptSchema = z.object({
+  attemptId: z.string().uuid(),
+  score: z.number().min(0).max(100).optional(),
+  totalQuestions: z.number().int().min(0).optional(),
+  correctAnswers: z.number().int().min(0).optional(),
+  timeSpentSeconds: z.number().int().min(0).optional(),
+  completed: z.boolean().optional(),
+});
 
 // POST: Start a new attempt
 export async function POST(
@@ -121,22 +131,17 @@ export async function PUT(
   }
 
   const body = await request.json();
-  const { attemptId, score, totalQuestions, correctAnswers, timeSpentSeconds, completed } =
-    body as {
-      attemptId: string;
-      score?: number;
-      totalQuestions?: number;
-      correctAnswers?: number;
-      timeSpentSeconds?: number;
-      completed?: boolean;
-    };
+  const parsed = updateAttemptSchema.safeParse(body);
 
-  if (!attemptId) {
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "ID da tentativa e obrigatorio." },
-      { status: 400 }
+      { error: "Dados invalidos.", details: parsed.error.flatten() },
+      { status: 400 },
     );
   }
+
+  const { attemptId, score, totalQuestions, correctAnswers, timeSpentSeconds, completed } =
+    parsed.data;
 
   // Verify attempt belongs to user
   const { data: attempt } = await supabase

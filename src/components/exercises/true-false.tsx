@@ -32,7 +32,7 @@ export function TrueFalse({
 
   function getButtonClasses(value: boolean) {
     const base =
-      "flex-1 flex flex-col items-center justify-center gap-3 rounded-2xl border-3 p-8 font-bold text-xl transition-all duration-300 cursor-pointer";
+      "flex-1 flex flex-col items-center justify-center gap-3 rounded-2xl border-3 p-8 font-bold text-xl transition-all duration-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 
     if (!answered) {
       if (selected === value) {
@@ -68,14 +68,16 @@ export function TrueFalse({
   }
 
   return (
-    <div>
-      <div
+    <fieldset aria-label="Verdadeiro ou Falso">
+      <legend
         className="mb-8 text-lg font-medium leading-relaxed"
         dangerouslySetInnerHTML={{ __html: question.questionText }}
       />
-      <div className="flex gap-4">
+      <div className="flex gap-4" role="radiogroup" aria-label="Escolha verdadeiro ou falso">
         <motion.button
           type="button"
+          role="radio"
+          aria-checked={selected === true}
           onClick={() => handleSelect(true)}
           disabled={answered}
           className={getButtonClasses(true)}
@@ -87,6 +89,8 @@ export function TrueFalse({
         </motion.button>
         <motion.button
           type="button"
+          role="radio"
+          aria-checked={selected === false}
           onClick={() => handleSelect(false)}
           disabled={answered}
           className={getButtonClasses(false)}
@@ -97,6 +101,6 @@ export function TrueFalse({
           <span>Falso</span>
         </motion.button>
       </div>
-    </div>
+    </fieldset>
   );
 }

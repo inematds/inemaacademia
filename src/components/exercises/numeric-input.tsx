@@ -56,6 +56,7 @@ export function NumericInput({
             onChange={handleChange}
             disabled={answered}
             placeholder="Digite sua resposta..."
+            aria-label="Sua resposta numerica"
             className={cn(
               "h-14 text-center text-2xl font-mono transition-all duration-300",
               answered && isCorrect

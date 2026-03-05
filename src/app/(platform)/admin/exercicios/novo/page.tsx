@@ -173,17 +173,17 @@ export default function ExerciseBuilderPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 p-6">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-4xl space-y-6 p-4 sm:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" asChild>
             <Link href="/admin">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <h1 className="text-2xl font-bold">Criar Exercicio</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">Criar Exercicio</h1>
         </div>
-        <Button onClick={handleSave} disabled={saving}>
+        <Button onClick={handleSave} disabled={saving} className="min-h-[44px]">
           <Save className="mr-2 h-4 w-4" />
           {saving ? "Salvando..." : "Salvar"}
         </Button>
@@ -230,9 +230,9 @@ export default function ExerciseBuilderPage() {
         {questions.map((question, qIndex) => (
           <Card key={question.id}>
             <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab hidden sm:block" />
                   <Badge variant="outline">Questao {qIndex + 1}</Badge>
                   <Select
                     value={question.type}
@@ -250,7 +250,7 @@ export default function ExerciseBuilderPage() {
                       })
                     }
                   >
-                    <SelectTrigger className="w-48">
+                    <SelectTrigger className="w-full sm:w-48">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

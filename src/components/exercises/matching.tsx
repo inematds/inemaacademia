@@ -112,7 +112,7 @@ export function Matching({
 
   function getLeftClasses(item: string) {
     const base =
-      "w-full text-left rounded-xl border-2 p-3 text-sm font-medium transition-all duration-200";
+      "w-full text-left rounded-xl border-2 p-3 text-sm font-medium transition-all duration-200 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
     if (answered) {
       const correct = isMatchCorrect(item);
       if (correct) return cn(base, "border-green-500 bg-green-50 dark:bg-green-950/30");
@@ -129,7 +129,7 @@ export function Matching({
 
   function getRightClasses(item: string) {
     const base =
-      "w-full text-left rounded-xl border-2 p-3 text-sm font-medium transition-all duration-200";
+      "w-full text-left rounded-xl border-2 p-3 text-sm font-medium transition-all duration-200 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
     const isMatched = Object.values(matches).includes(item);
 
     if (answered) {
@@ -209,7 +209,7 @@ export function Matching({
           })}
         </svg>
 
-        <div className="grid grid-cols-2 gap-8">
+        <div className="grid grid-cols-2 gap-3 sm:gap-8">
           {/* Left column */}
           <div className="space-y-3">
             {leftItems.map((item, i) => (
@@ -221,6 +221,8 @@ export function Matching({
                 }}
                 onClick={() => handleLeftClick(item)}
                 disabled={answered}
+                aria-label={`Item ${i + 1} da esquerda`}
+                aria-pressed={activeLeft === item}
                 className={getLeftClasses(item)}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -247,6 +249,7 @@ export function Matching({
                 }}
                 onClick={() => handleRightClick(item)}
                 disabled={answered || !activeLeft}
+                aria-label={`Item ${i + 1} da direita`}
                 className={getRightClasses(item)}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}

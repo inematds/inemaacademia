@@ -2,12 +2,22 @@ import type { Metadata } from "next";
 import { Inter, Source_Serif_4 } from "next/font/google";
 import { Toaster } from "sonner";
 
+import { OfflineDetector } from "@/components/offline-detector";
+import { ServiceWorkerRegister } from "@/components/sw-register";
+
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+  preload: true,
+});
 const sourceSerif = Source_Serif_4({
   subsets: ["latin"],
   variable: "--font-source-serif",
+  display: "swap",
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -55,9 +65,17 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        <link rel="dns-prefetch" href="https://www.youtube.com" />
+        <link rel="dns-prefetch" href="https://www.geogebra.org" />
+        <link rel="dns-prefetch" href="https://www.desmos.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
       <body className={`${inter.variable} ${sourceSerif.variable}`}>
         {children}
         <Toaster richColors position="top-right" />
+        <ServiceWorkerRegister />
+        <OfflineDetector />
       </body>
     </html>
   );

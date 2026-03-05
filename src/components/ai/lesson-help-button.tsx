@@ -1,9 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AiTutor } from "@/components/ai/ai-tutor";
+
+const AiTutor = dynamic(
+  () => import("@/components/ai/ai-tutor").then((m) => m.AiTutor),
+  { ssr: false },
+);
 
 type LessonHelpButtonProps = {
   lessonId: string;

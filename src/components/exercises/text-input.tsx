@@ -50,6 +50,7 @@ export function TextInput({
             onChange={handleChange}
             disabled={answered}
             placeholder="Digite sua resposta..."
+            aria-label="Sua resposta"
             className={cn(
               "h-14 text-center text-lg transition-all duration-300",
               answered && isCorrect

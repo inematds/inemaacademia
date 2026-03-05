@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { calculateXpGain, calculateLevel } from "@/services/xp";
 import { updateStreak } from "@/services/streak";
 import { checkBadgeConditions, type StudentStats } from "@/services/badges";
+import { progressLimiter } from "@/lib/rate-limit";
 
 const completeLessonSchema = z.object({
   lessonId: z.string().uuid(),
@@ -22,6 +23,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Nao autorizado." },
         { status: 401 },
+      );
+    }
+
+    const rateResult = progressLimiter.check(user.id);
+    if (!rateResult.allowed) {
+      return NextResponse.json(
+        { error: "Muitas requisicoes. Tente novamente em breve." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil((rateResult.retryAfterMs ?? 0) / 1000)),
+          },
+        },
       );
     }
 

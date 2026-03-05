@@ -45,7 +45,7 @@ export function MultipleSelect({
   function getOptionClasses(option: string) {
     if (!answered) {
       return cn(
-        "flex items-center gap-4 rounded-xl border-2 p-4 cursor-pointer transition-all duration-200",
+        "flex items-center gap-3 sm:gap-4 rounded-xl border-2 px-3 py-3 sm:p-4 cursor-pointer transition-all duration-200 min-h-[48px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         selected.includes(option)
           ? "border-primary bg-primary/5 shadow-md"
           : "border-border hover:border-primary/50 hover:bg-muted/50"
@@ -56,20 +56,20 @@ export function MultipleSelect({
     const wasSelected = selected.includes(option);
 
     if (isInCorrect && wasSelected) {
-      return "flex items-center gap-4 rounded-xl border-2 p-4 border-green-500 bg-green-50 dark:bg-green-950/30 shadow-md";
+      return "flex items-center gap-3 sm:gap-4 rounded-xl border-2 px-3 py-3 sm:p-4 min-h-[48px] border-green-500 bg-green-50 dark:bg-green-950/30 shadow-md";
     }
     if (isInCorrect && !wasSelected) {
-      return "flex items-center gap-4 rounded-xl border-2 p-4 border-green-500/50 bg-green-50/50 dark:bg-green-950/20 border-dashed";
+      return "flex items-center gap-3 sm:gap-4 rounded-xl border-2 px-3 py-3 sm:p-4 min-h-[48px] border-green-500/50 bg-green-50/50 dark:bg-green-950/20 border-dashed";
     }
     if (!isInCorrect && wasSelected) {
-      return "flex items-center gap-4 rounded-xl border-2 p-4 border-red-500 bg-red-50 dark:bg-red-950/30";
+      return "flex items-center gap-3 sm:gap-4 rounded-xl border-2 px-3 py-3 sm:p-4 min-h-[48px] border-red-500 bg-red-50 dark:bg-red-950/30";
     }
-    return "flex items-center gap-4 rounded-xl border-2 p-4 border-border opacity-50";
+    return "flex items-center gap-3 sm:gap-4 rounded-xl border-2 px-3 py-3 sm:p-4 min-h-[48px] border-border opacity-50";
   }
 
   return (
-    <div className="space-y-3">
-      <div
+    <fieldset className="space-y-3" aria-label="Selecione todas as alternativas corretas">
+      <legend
         className="mb-2 text-lg font-medium leading-relaxed"
         dangerouslySetInnerHTML={{ __html: question.questionText }}
       />
@@ -80,6 +80,9 @@ export function MultipleSelect({
         <motion.button
           key={option}
           type="button"
+          role="checkbox"
+          aria-checked={selected.includes(option)}
+          aria-label={`Opcao ${LABELS[index]}`}
           onClick={() => handleToggle(option)}
           disabled={answered}
           className={getOptionClasses(option)}
@@ -126,6 +129,6 @@ export function MultipleSelect({
           )}
         </motion.div>
       )}
-    </div>
+    </fieldset>
   );
 }

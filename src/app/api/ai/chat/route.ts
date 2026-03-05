@@ -3,6 +3,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { buildSystemPrompt, type TutorContext } from "@/lib/ai/system-prompt";
+import { aiChatLimiter } from "@/lib/rate-limit";
+import { sanitizeInput } from "@/lib/sanitize";
 
 const MAX_MESSAGES_PER_DAY = 50;
 
@@ -39,6 +41,23 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // In-memory rate limiting (complements the DB-based daily limit)
+    const rateResult = aiChatLimiter.check(user.id);
+    if (!rateResult.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: `Limite de requisicoes atingido. Tente novamente em ${Math.ceil((rateResult.retryAfterMs ?? 0) / 1000 / 60)} minutos.`,
+        }),
+        {
+          status: 429,
+          headers: {
+            "Content-Type": "application/json",
+            "Retry-After": String(Math.ceil((rateResult.retryAfterMs ?? 0) / 1000)),
+          },
+        },
+      );
+    }
+
     const body = await req.json();
     const parsed = requestSchema.safeParse(body);
 
@@ -52,7 +71,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { message, conversationId, lessonId, context } = parsed.data;
+    const { message: rawMessage, conversationId, lessonId, context } = parsed.data;
+    const message = sanitizeInput(rawMessage);
 
     // Rate limiting: count messages sent today
     const todayStart = new Date();

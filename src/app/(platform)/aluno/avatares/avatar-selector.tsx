@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Lock, Check, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -87,15 +88,17 @@ export function AvatarSelector({ avatars, userXp, userLevel }: Props) {
                 <div className="relative">
                   <div
                     className={cn(
-                      "h-20 w-20 rounded-full bg-muted flex items-center justify-center text-3xl overflow-hidden",
+                      "relative h-20 w-20 rounded-full bg-muted flex items-center justify-center text-3xl overflow-hidden",
                       locked && "grayscale"
                     )}
                   >
                     {avatar.imageUrl ? (
-                      <img
+                      <Image
                         src={avatar.imageUrl}
                         alt={avatar.name}
-                        className="h-full w-full object-cover"
+                        fill
+                        sizes="80px"
+                        className="object-cover"
                       />
                     ) : (
                       avatar.name.charAt(0).toUpperCase()

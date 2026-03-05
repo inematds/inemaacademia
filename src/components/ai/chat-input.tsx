@@ -45,6 +45,7 @@ export function ChatInput({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         disabled={isLoading}
+        aria-label="Mensagem para o tutor"
         className="min-h-10 max-h-32 resize-none rounded-xl text-sm"
         rows={1}
       />

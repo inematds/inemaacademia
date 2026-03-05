@@ -1,5 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+
+const submitAssessmentSchema = z.object({
+  totalQuestions: z.number().int().min(1),
+  correctAnswers: z.number().int().min(0),
+  score: z.number().min(0).max(100),
+  timeSpentSeconds: z.number().int().min(0),
+  answers: z.array(
+    z.object({
+      questionId: z.string().uuid(),
+      correct: z.boolean(),
+      userAnswer: z.unknown(),
+    }),
+  ),
+});
 
 export async function GET(
   _request: NextRequest,
@@ -120,19 +135,17 @@ export async function POST(
   }
 
   const body = await request.json();
-  const {
-    totalQuestions,
-    correctAnswers,
-    score,
-    timeSpentSeconds,
-    answers,
-  } = body as {
-    totalQuestions: number;
-    correctAnswers: number;
-    score: number;
-    timeSpentSeconds: number;
-    answers: { questionId: string; correct: boolean; userAnswer: unknown }[];
-  };
+  const parsed = submitAssessmentSchema.safeParse(body);
+
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Dados invalidos.", details: parsed.error.flatten() },
+      { status: 400 },
+    );
+  }
+
+  const { totalQuestions, correctAnswers, score, timeSpentSeconds, answers } =
+    parsed.data;
 
   // Fetch assessment to validate
   const { data: assessment } = await supabase

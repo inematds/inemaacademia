@@ -177,7 +177,7 @@ function RankingList({
 
                 {/* Avatar */}
                 <Avatar className="h-8 w-8">
-                  {entry.avatarUrl && <AvatarImage src={entry.avatarUrl} />}
+                  {entry.avatarUrl && <AvatarImage src={entry.avatarUrl} alt="" />}
                   <AvatarFallback className="text-xs">
                     {getInitials(entry.fullName)}
                   </AvatarFallback>
@@ -261,7 +261,7 @@ function PodiumCard({
       {/* Avatar with crown/medal */}
       <div className="relative">
         <Avatar className="h-12 w-12 ring-2 ring-offset-2 ring-offset-background ring-amber-400 sm:h-14 sm:w-14">
-          {entry.avatarUrl && <AvatarImage src={entry.avatarUrl} />}
+          {entry.avatarUrl && <AvatarImage src={entry.avatarUrl} alt="" />}
           <AvatarFallback>{getInitials(entry.fullName)}</AvatarFallback>
         </Avatar>
         <div

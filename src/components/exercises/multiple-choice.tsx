@@ -36,7 +36,7 @@ export function MultipleChoice({
   function getOptionClasses(option: string) {
     if (!answered) {
       return cn(
-        "flex items-center gap-4 rounded-xl border-2 p-4 cursor-pointer transition-all duration-200",
+        "flex items-center gap-3 sm:gap-4 rounded-xl border-2 px-3 py-3 sm:p-4 cursor-pointer transition-all duration-200 min-h-[48px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         selected === option
           ? "border-primary bg-primary/5 shadow-md"
           : "border-border hover:border-primary/50 hover:bg-muted/50"
@@ -44,14 +44,14 @@ export function MultipleChoice({
     }
 
     if (option === correctAnswer) {
-      return "flex items-center gap-4 rounded-xl border-2 p-4 border-green-500 bg-green-50 dark:bg-green-950/30 shadow-md";
+      return "flex items-center gap-3 sm:gap-4 rounded-xl border-2 px-3 py-3 sm:p-4 min-h-[48px] border-green-500 bg-green-50 dark:bg-green-950/30 shadow-md";
     }
 
     if (option === selected && option !== correctAnswer) {
-      return "flex items-center gap-4 rounded-xl border-2 p-4 border-red-500 bg-red-50 dark:bg-red-950/30";
+      return "flex items-center gap-3 sm:gap-4 rounded-xl border-2 px-3 py-3 sm:p-4 min-h-[48px] border-red-500 bg-red-50 dark:bg-red-950/30";
     }
 
-    return "flex items-center gap-4 rounded-xl border-2 p-4 border-border opacity-50";
+    return "flex items-center gap-3 sm:gap-4 rounded-xl border-2 px-3 py-3 sm:p-4 min-h-[48px] border-border opacity-50";
   }
 
   function getLabelClasses(option: string) {
@@ -76,8 +76,8 @@ export function MultipleChoice({
   }
 
   return (
-    <div className="space-y-3">
-      <div
+    <fieldset className="space-y-3" aria-label="Opcoes de resposta">
+      <legend
         className="mb-6 text-lg font-medium leading-relaxed"
         dangerouslySetInnerHTML={{ __html: question.questionText }}
       />
@@ -85,6 +85,9 @@ export function MultipleChoice({
         <motion.button
           key={option}
           type="button"
+          role="radio"
+          aria-checked={selected === option}
+          aria-label={`Opcao ${LABELS[index]}`}
           onClick={() => handleSelect(option)}
           disabled={answered}
           className={getOptionClasses(option)}
@@ -119,6 +122,6 @@ export function MultipleChoice({
           )}
         </motion.button>
       ))}
-    </div>
+    </fieldset>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
@@ -347,7 +348,7 @@ function ExerciseContent({ data }: { data: unknown }) {
                   }
                 }}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-sm text-left transition-colors",
+                  "flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-sm text-left transition-colors min-h-[48px]",
                   answers[qi] === oi && !showResults && "border-primary bg-primary/5",
                   showResults && oi === q.correct && "border-green-500 bg-green-50",
                   showResults &&
@@ -417,9 +418,20 @@ export function LessonPageClient({
   userId: string;
   initialStatus: string;
 }) {
+  const router = useRouter();
   const [status, setStatus] = useState(initialStatus);
   const [isPending, startTransition] = useTransition();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Prefetch next lesson for instant navigation
+  useEffect(() => {
+    if (nextLesson) {
+      router.prefetch(`/licao/${nextLesson.id}`);
+    }
+    if (prevLesson) {
+      router.prefetch(`/licao/${prevLesson.id}`);
+    }
+  }, [nextLesson, prevLesson, router]);
 
   function handleMarkComplete() {
     startTransition(async () => {
@@ -544,10 +556,10 @@ export function LessonPageClient({
         </div>
 
         {/* Bottom navigation */}
-        <div className="flex items-center justify-between gap-4">
-          <div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="order-2 sm:order-1">
             {prevLesson && (
-              <Button variant="outline" asChild>
+              <Button variant="outline" className="min-h-[44px] w-full sm:w-auto" asChild>
                 <Link href={`/licao/${prevLesson.id}`}>
                   <ArrowLeft className="mr-2 size-4" />
                   Anterior
@@ -556,20 +568,20 @@ export function LessonPageClient({
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="order-1 flex flex-col gap-2 sm:order-2 sm:flex-row sm:items-center sm:gap-3">
             {status === "completed" ? (
-              <Button disabled variant="secondary">
+              <Button disabled variant="secondary" className="min-h-[44px]">
                 <CheckCircle2 className="mr-2 size-4 text-green-500" />
                 Concluida
               </Button>
             ) : (
-              <Button onClick={handleMarkComplete} disabled={isPending}>
+              <Button onClick={handleMarkComplete} disabled={isPending} className="min-h-[44px]">
                 {isPending ? "Salvando..." : "Marcar como concluida"}
               </Button>
             )}
 
             {nextLesson && (
-              <Button variant="outline" asChild>
+              <Button variant="outline" className="min-h-[44px]" asChild>
                 <Link href={`/licao/${nextLesson.id}`}>
                   Proxima
                   <ArrowRight className="ml-2 size-4" />
