@@ -203,9 +203,9 @@ export function SubjectsAdmin({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Materias</h1>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Materias</h1>
           <p className="text-muted-foreground">
             Gerencie as materias da plataforma
           </p>
@@ -216,16 +216,16 @@ export function SubjectsAdmin({
         </Button>
       </div>
 
-      <div className="rounded-lg border bg-card">
+      <div className="rounded-lg border bg-card overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-10"></TableHead>
+              <TableHead className="w-10 hidden sm:table-cell"></TableHead>
               <TableHead>Cor</TableHead>
               <TableHead>Nome</TableHead>
-              <TableHead>Slug</TableHead>
-              <TableHead>Icone</TableHead>
-              <TableHead>Ordem</TableHead>
+              <TableHead className="hidden sm:table-cell">Slug</TableHead>
+              <TableHead className="hidden md:table-cell">Icone</TableHead>
+              <TableHead className="hidden sm:table-cell">Ordem</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Acoes</TableHead>
             </TableRow>
@@ -243,7 +243,7 @@ export function SubjectsAdmin({
                   dragIndex === index && "opacity-50",
                 )}
               >
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   <GripVertical className="size-4 text-muted-foreground" />
                 </TableCell>
                 <TableCell>
@@ -253,13 +253,13 @@ export function SubjectsAdmin({
                   />
                 </TableCell>
                 <TableCell className="font-medium">{subject.name}</TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="text-muted-foreground hidden sm:table-cell">
                   {subject.slug}
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="text-muted-foreground hidden md:table-cell">
                   {subject.icon ?? "-"}
                 </TableCell>
-                <TableCell>{subject.order}</TableCell>
+                <TableCell className="hidden sm:table-cell">{subject.order}</TableCell>
                 <TableCell>
                   <Badge
                     variant={subject.isActive ? "default" : "secondary"}

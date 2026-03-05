@@ -107,7 +107,7 @@ export default async function CourseDetailPage({
           </Link>
         </Button>
         <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mb-1">
             <Link href="/materias" className="hover:text-foreground">
               Materias
             </Link>
@@ -185,7 +185,7 @@ export default async function CourseDetailPage({
                       <Link
                         key={lesson.id}
                         href={`/licao/${lesson.id}`}
-                        className="flex items-center gap-3 rounded-md px-3 py-2.5 transition-colors hover:bg-accent group"
+                        className="flex items-center gap-3 rounded-md px-3 py-2.5 transition-colors hover:bg-accent group min-h-[44px]"
                       >
                         {isCompleted ? (
                           <CheckCircle2 className="size-5 text-green-500 shrink-0" />

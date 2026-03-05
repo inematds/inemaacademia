@@ -143,18 +143,18 @@ export function UnitsAdmin({ initialUnits, courses }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Gerenciar Unidades</h1>
-        <Button onClick={openCreate}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-xl sm:text-2xl font-bold">Gerenciar Unidades</h1>
+        <Button onClick={openCreate} className="min-h-[44px]">
           <Plus className="mr-2 h-4 w-4" />
           Nova Unidade
         </Button>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
         <Label>Filtrar por curso:</Label>
         <Select value={filterCourse} onValueChange={setFilterCourse}>
-          <SelectTrigger className="w-64">
+          <SelectTrigger className="w-full sm:w-64">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -168,7 +168,7 @@ export function UnitsAdmin({ initialUnits, courses }: Props) {
         </Select>
       </div>
 
-      <div className="rounded-xl border">
+      <div className="rounded-xl border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>

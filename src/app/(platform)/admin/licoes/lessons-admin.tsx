@@ -165,21 +165,21 @@ export function LessonsAdmin({ initialLessons, units }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Gerenciar Licoes</h1>
-        <Button onClick={openCreate}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-xl sm:text-2xl font-bold">Gerenciar Licoes</h1>
+        <Button onClick={openCreate} className="min-h-[44px]">
           <Plus className="mr-2 h-4 w-4" />
           Nova Licao
         </Button>
       </div>
 
-      <div className="rounded-xl border">
+      <div className="rounded-xl border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Tipo</TableHead>
               <TableHead>Nome</TableHead>
-              <TableHead>Unidade / Curso / Materia</TableHead>
+              <TableHead className="hidden sm:table-cell">Unidade / Curso / Materia</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Acoes</TableHead>
             </TableRow>
@@ -201,7 +201,7 @@ export function LessonsAdmin({ initialLessons, units }: Props) {
                   </div>
                 </TableCell>
                 <TableCell className="font-medium">{lesson.name}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">
+                <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">
                   {lesson.unitName} / {lesson.courseName} / {lesson.subjectName}
                 </TableCell>
                 <TableCell>

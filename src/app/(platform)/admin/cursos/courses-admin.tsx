@@ -196,14 +196,14 @@ export function CoursesAdmin({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Cursos</h1>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Cursos</h1>
           <p className="text-muted-foreground">
             Gerencie os cursos da plataforma
           </p>
         </div>
-        <Button onClick={openCreate}>
+        <Button onClick={openCreate} className="min-h-[44px]">
           <Plus className="mr-2 size-4" />
           Novo Curso
         </Button>
@@ -227,14 +227,14 @@ export function CoursesAdmin({
         </Select>
       </div>
 
-      <div className="rounded-lg border bg-card">
+      <div className="rounded-lg border bg-card overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
-              <TableHead>Slug</TableHead>
+              <TableHead className="hidden sm:table-cell">Slug</TableHead>
               <TableHead>Materia</TableHead>
-              <TableHead>Ordem</TableHead>
+              <TableHead className="hidden sm:table-cell">Ordem</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Acoes</TableHead>
             </TableRow>
@@ -243,7 +243,7 @@ export function CoursesAdmin({
             {filteredCourses.map((course) => (
               <TableRow key={course.id}>
                 <TableCell className="font-medium">{course.name}</TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="text-muted-foreground hidden sm:table-cell">
                   {course.slug}
                 </TableCell>
                 <TableCell>
@@ -251,7 +251,7 @@ export function CoursesAdmin({
                     {course.subjectName ?? "—"}
                   </Badge>
                 </TableCell>
-                <TableCell>{course.order}</TableCell>
+                <TableCell className="hidden sm:table-cell">{course.order}</TableCell>
                 <TableCell>
                   <Badge
                     variant={course.isActive ? "default" : "secondary"}
