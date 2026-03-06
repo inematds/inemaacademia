@@ -4,12 +4,7 @@ import {
   BookOpen,
   FileText,
 } from "lucide-react";
-import {
-  getTotalStudents,
-  getTotalTeachers,
-  getTotalCourses,
-  getTotalLessons,
-} from "@/db/queries/content";
+import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const metadata = {
@@ -17,38 +12,53 @@ export const metadata = {
 };
 
 export default async function AdminDashboardPage() {
-  const [students, teachers, coursesCount, lessonsCount] = await Promise.all([
-    getTotalStudents(),
-    getTotalTeachers(),
-    getTotalCourses(),
-    getTotalLessons(),
-  ]);
+  const supabase = await createClient();
+
+  const [studentsResult, teachersResult, coursesResult, lessonsResult] =
+    await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "aluno"),
+      supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "professor"),
+      supabase
+        .from("courses")
+        .select("id", { count: "exact", head: true })
+        .eq("is_active", true),
+      supabase
+        .from("lessons")
+        .select("id", { count: "exact", head: true })
+        .eq("is_active", true),
+    ]);
 
   const stats = [
     {
       label: "Total de Alunos",
-      value: students,
+      value: studentsResult.count ?? 0,
       icon: Users,
       color: "text-blue-500",
       bg: "bg-blue-500/10",
     },
     {
       label: "Total de Professores",
-      value: teachers,
+      value: teachersResult.count ?? 0,
       icon: GraduationCap,
       color: "text-green-500",
       bg: "bg-green-500/10",
     },
     {
       label: "Cursos Ativos",
-      value: coursesCount,
+      value: coursesResult.count ?? 0,
       icon: BookOpen,
       color: "text-orange-500",
       bg: "bg-orange-500/10",
     },
     {
       label: "Total de Licoes",
-      value: lessonsCount,
+      value: lessonsResult.count ?? 0,
       icon: FileText,
       color: "text-purple-500",
       bg: "bg-purple-500/10",

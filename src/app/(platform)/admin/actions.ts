@@ -1,12 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { db } from "@/db";
-import { subjects, courses } from "@/db/schema/content";
 import { createClient } from "@/lib/supabase/server";
-import { getUserProfile } from "@/db/queries/content";
 
 // ---------------------------------------------------------------------------
 // Auth check helper
@@ -22,12 +18,17 @@ async function requireAdmin() {
     throw new Error("Nao autenticado");
   }
 
-  const profile = await getUserProfile(user.id);
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
   if (!profile || profile.role !== "admin") {
     throw new Error("Acesso negado");
   }
 
-  return user;
+  return { user, supabase };
 }
 
 // ---------------------------------------------------------------------------
@@ -62,58 +63,63 @@ export type CourseFormData = z.infer<typeof courseSchema>;
 // ---------------------------------------------------------------------------
 
 export async function createSubject(data: SubjectFormData) {
-  await requireAdmin();
-
+  const { supabase } = await requireAdmin();
   const validated = subjectSchema.parse(data);
 
-  const result = await db
-    .insert(subjects)
-    .values({
+  const { data: result, error } = await supabase
+    .from("subjects")
+    .insert({
       name: validated.name,
       slug: validated.slug,
       description: validated.description ?? null,
       icon: validated.icon ?? null,
       color: validated.color ?? null,
       order: validated.order,
-      isActive: validated.isActive,
+      is_active: validated.isActive,
     })
-    .returning();
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
 
   revalidatePath("/admin/materias");
   revalidatePath("/materias");
 
-  return { success: true, data: result[0] };
+  return { success: true, data: result };
 }
 
 export async function updateSubject(id: string, data: SubjectFormData) {
-  await requireAdmin();
-
+  const { supabase } = await requireAdmin();
   const validated = subjectSchema.parse(data);
 
-  const result = await db
-    .update(subjects)
-    .set({
+  const { data: result, error } = await supabase
+    .from("subjects")
+    .update({
       name: validated.name,
       slug: validated.slug,
       description: validated.description ?? null,
       icon: validated.icon ?? null,
       color: validated.color ?? null,
       order: validated.order,
-      isActive: validated.isActive,
+      is_active: validated.isActive,
     })
-    .where(eq(subjects.id, id))
-    .returning();
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
 
   revalidatePath("/admin/materias");
   revalidatePath("/materias");
 
-  return { success: true, data: result[0] };
+  return { success: true, data: result };
 }
 
 export async function deleteSubject(id: string) {
-  await requireAdmin();
+  const { supabase } = await requireAdmin();
 
-  await db.delete(subjects).where(eq(subjects.id, id));
+  const { error } = await supabase.from("subjects").delete().eq("id", id);
+  if (error) throw new Error(error.message);
 
   revalidatePath("/admin/materias");
   revalidatePath("/materias");
@@ -122,12 +128,14 @@ export async function deleteSubject(id: string) {
 }
 
 export async function toggleSubjectActive(id: string, isActive: boolean) {
-  await requireAdmin();
+  const { supabase } = await requireAdmin();
 
-  await db
-    .update(subjects)
-    .set({ isActive })
-    .where(eq(subjects.id, id));
+  const { error } = await supabase
+    .from("subjects")
+    .update({ is_active: isActive })
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
 
   revalidatePath("/admin/materias");
   revalidatePath("/materias");
@@ -136,13 +144,13 @@ export async function toggleSubjectActive(id: string, isActive: boolean) {
 }
 
 export async function reorderSubjects(orderedIds: string[]) {
-  await requireAdmin();
+  const { supabase } = await requireAdmin();
 
   for (let i = 0; i < orderedIds.length; i++) {
-    await db
-      .update(subjects)
-      .set({ order: i + 1 })
-      .where(eq(subjects.id, orderedIds[i]));
+    await supabase
+      .from("subjects")
+      .update({ order: i + 1 })
+      .eq("id", orderedIds[i]);
   }
 
   revalidatePath("/admin/materias");
@@ -156,58 +164,63 @@ export async function reorderSubjects(orderedIds: string[]) {
 // ---------------------------------------------------------------------------
 
 export async function createCourse(data: CourseFormData) {
-  await requireAdmin();
-
+  const { supabase } = await requireAdmin();
   const validated = courseSchema.parse(data);
 
-  const result = await db
-    .insert(courses)
-    .values({
-      subjectId: validated.subjectId,
+  const { data: result, error } = await supabase
+    .from("courses")
+    .insert({
+      subject_id: validated.subjectId,
       name: validated.name,
       slug: validated.slug,
       description: validated.description ?? null,
-      thumbnailUrl: validated.thumbnailUrl ?? null,
+      thumbnail_url: validated.thumbnailUrl ?? null,
       order: validated.order,
-      isActive: validated.isActive,
+      is_active: validated.isActive,
     })
-    .returning();
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
 
   revalidatePath("/admin/cursos");
   revalidatePath("/materias");
 
-  return { success: true, data: result[0] };
+  return { success: true, data: result };
 }
 
 export async function updateCourse(id: string, data: CourseFormData) {
-  await requireAdmin();
-
+  const { supabase } = await requireAdmin();
   const validated = courseSchema.parse(data);
 
-  const result = await db
-    .update(courses)
-    .set({
-      subjectId: validated.subjectId,
+  const { data: result, error } = await supabase
+    .from("courses")
+    .update({
+      subject_id: validated.subjectId,
       name: validated.name,
       slug: validated.slug,
       description: validated.description ?? null,
-      thumbnailUrl: validated.thumbnailUrl ?? null,
+      thumbnail_url: validated.thumbnailUrl ?? null,
       order: validated.order,
-      isActive: validated.isActive,
+      is_active: validated.isActive,
     })
-    .where(eq(courses.id, id))
-    .returning();
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
 
   revalidatePath("/admin/cursos");
   revalidatePath("/materias");
 
-  return { success: true, data: result[0] };
+  return { success: true, data: result };
 }
 
 export async function deleteCourse(id: string) {
-  await requireAdmin();
+  const { supabase } = await requireAdmin();
 
-  await db.delete(courses).where(eq(courses.id, id));
+  const { error } = await supabase.from("courses").delete().eq("id", id);
+  if (error) throw new Error(error.message);
 
   revalidatePath("/admin/cursos");
   revalidatePath("/materias");
@@ -216,12 +229,14 @@ export async function deleteCourse(id: string) {
 }
 
 export async function toggleCourseActive(id: string, isActive: boolean) {
-  await requireAdmin();
+  const { supabase } = await requireAdmin();
 
-  await db
-    .update(courses)
-    .set({ isActive })
-    .where(eq(courses.id, id));
+  const { error } = await supabase
+    .from("courses")
+    .update({ is_active: isActive })
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
 
   revalidatePath("/admin/cursos");
   revalidatePath("/materias");

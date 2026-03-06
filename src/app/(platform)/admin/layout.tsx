@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getUserProfile } from "@/db/queries/content";
 import { AdminSidebar } from "./admin-sidebar";
 
 export default async function AdminLayout({
@@ -17,7 +16,11 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  const profile = await getUserProfile(user.id);
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
 
   if (!profile || profile.role !== "admin") {
     redirect("/materias");
