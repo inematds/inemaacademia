@@ -63,6 +63,7 @@ export async function registerAction(
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const role = (formData.get("role") as string) || "aluno";
+  const gradeLevel = formData.get("gradeLevel") as string | null;
 
   if (!fullName || !email || !password) {
     return { error: "Todos os campos são obrigatórios." };
@@ -85,6 +86,7 @@ export async function registerAction(
       data: {
         full_name: fullName,
         role,
+        grade_level: role === "aluno" ? gradeLevel : null,
       },
       emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback`,
     },

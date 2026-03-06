@@ -20,6 +20,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Form,
   FormControl,
   FormField,
@@ -30,6 +37,16 @@ import {
 import { Label } from "@/components/ui/label";
 
 import { registerAction } from "../actions";
+
+const gradeLevelOptions = [
+  { value: "6-fund", label: "6° ano (Fundamental)" },
+  { value: "7-fund", label: "7° ano (Fundamental)" },
+  { value: "8-fund", label: "8° ano (Fundamental)" },
+  { value: "9-fund", label: "9° ano (Fundamental)" },
+  { value: "1-em", label: "1° ano (Ensino Medio)" },
+  { value: "2-em", label: "2° ano (Ensino Medio)" },
+  { value: "3-em", label: "3° ano (Ensino Medio)" },
+];
 
 const registerSchema = z.object({
   fullName: z
@@ -47,6 +64,7 @@ const registerSchema = z.object({
   role: z.enum(["aluno", "professor"], {
     message: "Selecione o tipo de conta.",
   }),
+  gradeLevel: z.string().optional(),
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -61,8 +79,11 @@ export default function RegisterPage() {
       email: "",
       password: "",
       role: "aluno",
+      gradeLevel: "",
     },
   });
+
+  const watchRole = form.watch("role");
 
   function onSubmit(values: RegisterFormValues) {
     startTransition(async () => {
@@ -71,6 +92,9 @@ export default function RegisterPage() {
       formData.append("email", values.email);
       formData.append("password", values.password);
       formData.append("role", values.role);
+      if (values.gradeLevel) {
+        formData.append("gradeLevel", values.gradeLevel);
+      }
 
       const result = await registerAction(formData);
 
@@ -183,6 +207,33 @@ export default function RegisterPage() {
                 </FormItem>
               )}
             />
+
+            {watchRole === "aluno" && (
+              <FormField
+                control={form.control}
+                name="gradeLevel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Serie/Ano</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione sua serie" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {gradeLevelOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <Button type="submit" className="w-full" disabled={isPending}>
               {isPending ? (

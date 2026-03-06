@@ -2,11 +2,12 @@
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
-  INSERT INTO public.profiles (id, full_name, role, created_at, updated_at)
+  INSERT INTO public.profiles (id, full_name, role, grade_level, created_at, updated_at)
   VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),
     COALESCE(NEW.raw_user_meta_data->>'role', 'aluno'),
+    (NEW.raw_user_meta_data->>'grade_level')::grade_level,
     NOW(),
     NOW()
   );

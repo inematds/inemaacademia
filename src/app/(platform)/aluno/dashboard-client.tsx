@@ -58,6 +58,7 @@ interface StudentDashboardClientProps {
     name: string;
     slug: string;
     description: string | null;
+    subjectSlug: string;
   }>;
   nextLessons: Array<{
     id: string;
@@ -336,7 +337,7 @@ export function StudentDashboardClient({
                         )}
                       </div>
                       <Button size="sm" variant="ghost" asChild>
-                        <Link href={`/explorar/${course.slug}`}>
+                        <Link href={`/materias/${course.subjectSlug}/${course.slug}`}>
                           Comecar
                         </Link>
                       </Button>

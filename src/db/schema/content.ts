@@ -7,6 +7,7 @@ import {
   text,
   timestamp,
   uuid,
+  varchar,
 } from "drizzle-orm/pg-core";
 
 export const lessonTypeEnum = pgEnum("lesson_type", [
@@ -22,6 +23,11 @@ export const contentTypeEnum = pgEnum("lesson_content_type", [
   "exercise",
 ]);
 
+export const subjectCategoryEnum = pgEnum("subject_category", [
+  "curricular",
+  "extracurricular",
+]);
+
 export const subjects = pgTable("subjects", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
@@ -29,6 +35,7 @@ export const subjects = pgTable("subjects", {
   description: text("description"),
   icon: text("icon"),
   color: text("color"),
+  category: subjectCategoryEnum("category").notNull().default("curricular"),
   order: integer("order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -41,6 +48,7 @@ export const courses = pgTable("courses", {
   slug: text("slug").notNull(),
   description: text("description"),
   thumbnailUrl: text("thumbnail_url"),
+  gradeLevels: text("grade_levels"),
   order: integer("order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),

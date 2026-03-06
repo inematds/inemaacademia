@@ -234,6 +234,44 @@ function ArticleRenderer({ body }: { body: string }) {
       continue;
     }
 
+    // Image ![alt](url)
+    const imgMatch = line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (imgMatch) {
+      elements.push(
+        <figure key={i} className="my-6 flex flex-col items-center gap-2">
+          <img
+            src={imgMatch[2]}
+            alt={imgMatch[1]}
+            className="max-w-full rounded-lg border"
+            loading="lazy"
+          />
+          {imgMatch[1] && (
+            <figcaption className="text-xs text-muted-foreground italic">
+              {imgMatch[1]}
+            </figcaption>
+          )}
+        </figure>,
+      );
+      continue;
+    }
+
+    // SVG block (inline SVG between <svg> and </svg>)
+    if (line.trim().startsWith("<svg")) {
+      let svgContent = line;
+      while (i < lines.length - 1 && !svgContent.includes("</svg>")) {
+        i++;
+        svgContent += "\n" + lines[i];
+      }
+      elements.push(
+        <div
+          key={i}
+          className="my-6 flex justify-center"
+          dangerouslySetInnerHTML={{ __html: svgContent }}
+        />,
+      );
+      continue;
+    }
+
     // Regular paragraph
     elements.push(
       <p key={i} className="text-sm leading-relaxed">

@@ -1,4 +1,5 @@
 import { eq, and, asc, count } from "drizzle-orm";
+import { cache } from "react";
 import { db } from "@/db";
 import {
   subjects,
@@ -156,26 +157,23 @@ export async function getLessonContent(lessonId: string) {
   return result[0] ?? null;
 }
 
-export async function getLessonWithContent(lessonId: string) {
+export const getLessonWithContent = cache(async function getLessonWithContent(lessonId: string) {
   const lesson = await getLessonById(lessonId);
   if (!lesson) return null;
 
-  const content = await getLessonContent(lessonId);
-  const unit = await getUnitById(lesson.unitId);
+  // Run independent queries in parallel
+  const [content, unit] = await Promise.all([
+    getLessonContent(lessonId),
+    getUnitById(lesson.unitId),
+  ]);
 
-  let course = null;
-  let subject = null;
-  if (unit) {
-    course = await getCourseById(unit.courseId);
-    if (course) {
-      subject = await getSubjectById(course.subjectId);
-    }
-  }
+  // Run next level in parallel
+  const [course, siblingLessons] = await Promise.all([
+    unit ? getCourseById(unit.courseId) : null,
+    unit ? getLessonsByUnit(unit.id) : [],
+  ]);
 
-  // Get sibling lessons for navigation
-  const siblingLessons = unit
-    ? await getLessonsByUnit(unit.id)
-    : [];
+  const subject = course ? await getSubjectById(course.subjectId) : null;
 
   const currentIndex = siblingLessons.findIndex((l) => l.id === lessonId);
   const prevLesson = currentIndex > 0 ? siblingLessons[currentIndex - 1] : null;
@@ -194,7 +192,7 @@ export async function getLessonWithContent(lessonId: string) {
     prevLesson,
     nextLesson,
   };
-}
+});
 
 // ---------------------------------------------------------------------------
 // Progress
@@ -313,23 +311,23 @@ export async function getTotalLessons() {
 // User profile
 // ---------------------------------------------------------------------------
 
-export async function getUserProfile(userId: string) {
+export const getUserProfile = cache(async function getUserProfile(userId: string) {
   const result = await db
     .select()
     .from(profiles)
     .where(eq(profiles.id, userId))
     .limit(1);
   return result[0] ?? null;
-}
+});
 
-export async function getUserStats(userId: string) {
+export const getUserStats = cache(async function getUserStats(userId: string) {
   const result = await db
     .select()
     .from(studentStats)
     .where(eq(studentStats.studentId, userId))
     .limit(1);
   return result[0] ?? null;
-}
+});
 
 // ---------------------------------------------------------------------------
 // Course detail with units and lessons

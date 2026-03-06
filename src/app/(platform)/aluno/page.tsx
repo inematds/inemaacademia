@@ -79,23 +79,30 @@ export default async function AlunoDashboardPage() {
     name: string;
     slug: string;
     description: string | null;
+    subjectSlug: string;
   }> = [];
 
   if (enrolledCourseIds.length > 0) {
     const { data: notStarted } = await supabase
       .from("courses")
-      .select("id, name, slug, description")
+      .select("id, name, slug, description, subjects(slug)")
       .eq("is_active", true)
       .not("id", "in", `(${enrolledCourseIds.join(",")})`)
       .limit(3);
-    recommendedCourses = notStarted ?? [];
+    recommendedCourses = (notStarted ?? []).map((c) => ({
+      ...c,
+      subjectSlug: (c.subjects as unknown as { slug: string } | null)?.slug ?? "",
+    }));
   } else {
     const { data: allCourses } = await supabase
       .from("courses")
-      .select("id, name, slug, description")
+      .select("id, name, slug, description, subjects(slug)")
       .eq("is_active", true)
       .limit(3);
-    recommendedCourses = allCourses ?? [];
+    recommendedCourses = (allCourses ?? []).map((c) => ({
+      ...c,
+      subjectSlug: (c.subjects as unknown as { slug: string } | null)?.slug ?? "",
+    }));
   }
 
   // Find next lessons to continue (in_progress or first not_started in each course)
@@ -184,6 +191,7 @@ export default async function AlunoDashboardPage() {
         name: c.name,
         slug: c.slug,
         description: c.description,
+        subjectSlug: c.subjectSlug,
       }))}
       nextLessons={nextLessons.map((l) => ({
         id: l!.id,
