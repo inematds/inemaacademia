@@ -122,6 +122,16 @@ function VideoPlayer({ url }: { url: string }) {
 }
 
 function ArticleRenderer({ body }: { body: string }) {
+  // If body is HTML (starts with <), render it directly with styled container
+  if (body.trim().startsWith("<")) {
+    return (
+      <div
+        className="prose prose-sm dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3 prose-p:leading-relaxed prose-li:leading-relaxed prose-pre:bg-muted prose-pre:rounded-lg prose-code:text-sm"
+        dangerouslySetInnerHTML={{ __html: body }}
+      />
+    );
+  }
+
   // Simple markdown-like rendering with support for headings, bold, lists, blockquotes, code blocks, and KaTeX
   const lines = body.split("\n");
   const elements: React.ReactNode[] = [];
