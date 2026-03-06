@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getStudentEnrollments } from "@/db/queries/content";
 import { StudentDashboardClient } from "./dashboard-client";
 
 export const metadata = {
@@ -131,6 +132,9 @@ export default async function AlunoDashboardPage() {
     .eq("id", studentId)
     .single();
 
+  // Fetch enrolled courses (selected by student)
+  const enrollments = await getStudentEnrollments(studentId);
+
   // Fetch recent badges
   const { data: recentBadges } = await supabase
     .from("student_badges")
@@ -141,6 +145,16 @@ export default async function AlunoDashboardPage() {
 
   return (
     <StudentDashboardClient
+      enrolledCourses={enrollments.map((e) => ({
+        courseId: e.courseId,
+        courseName: e.courseName,
+        courseSlug: e.courseSlug,
+        courseDescription: e.courseDescription,
+        subjectSlug: e.subjectSlug ?? "",
+        subjectName: e.subjectName ?? "",
+        subjectIcon: e.subjectIcon,
+        subjectColor: e.subjectColor,
+      }))}
       profile={{
         fullName: profile?.full_name ?? "Estudante",
         avatarUrl: profile?.avatar_url ?? null,

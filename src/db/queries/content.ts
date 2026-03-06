@@ -1,4 +1,4 @@
-import { eq, and, asc, count } from "drizzle-orm";
+import { eq, and, asc, count, inArray } from "drizzle-orm";
 import { cache } from "react";
 import { db } from "@/db";
 import {
@@ -8,7 +8,7 @@ import {
   lessons,
   lessonContent,
 } from "@/db/schema/content";
-import { lessonProgress, courseProgress } from "@/db/schema/progress";
+import { lessonProgress, courseProgress, studentEnrollments } from "@/db/schema/progress";
 import { profiles } from "@/db/schema/auth";
 import { studentStats } from "@/db/schema/progress";
 
@@ -347,4 +347,70 @@ export async function getCourseWithUnitsAndLessons(courseId: string) {
   );
 
   return { ...course, units: unitsWithLessons };
+}
+
+// ---------------------------------------------------------------------------
+// Enrollments
+// ---------------------------------------------------------------------------
+
+export async function getStudentEnrollments(studentId: string) {
+  return db
+    .select({
+      id: studentEnrollments.id,
+      courseId: studentEnrollments.courseId,
+      enrolledAt: studentEnrollments.enrolledAt,
+      courseName: courses.name,
+      courseSlug: courses.slug,
+      courseDescription: courses.description,
+      subjectId: courses.subjectId,
+      subjectName: subjects.name,
+      subjectSlug: subjects.slug,
+      subjectIcon: subjects.icon,
+      subjectColor: subjects.color,
+    })
+    .from(studentEnrollments)
+    .innerJoin(courses, eq(studentEnrollments.courseId, courses.id))
+    .innerJoin(subjects, eq(courses.subjectId, subjects.id))
+    .where(eq(studentEnrollments.studentId, studentId))
+    .orderBy(asc(studentEnrollments.enrolledAt));
+}
+
+export async function getEnrolledCourseIds(studentId: string) {
+  const rows = await db
+    .select({ courseId: studentEnrollments.courseId })
+    .from(studentEnrollments)
+    .where(eq(studentEnrollments.studentId, studentId));
+  return rows.map((r) => r.courseId);
+}
+
+export async function isEnrolled(studentId: string, courseId: string) {
+  const result = await db
+    .select({ id: studentEnrollments.id })
+    .from(studentEnrollments)
+    .where(
+      and(
+        eq(studentEnrollments.studentId, studentId),
+        eq(studentEnrollments.courseId, courseId),
+      ),
+    )
+    .limit(1);
+  return result.length > 0;
+}
+
+export async function enrollInCourse(studentId: string, courseId: string) {
+  await db
+    .insert(studentEnrollments)
+    .values({ studentId, courseId })
+    .onConflictDoNothing();
+}
+
+export async function unenrollFromCourse(studentId: string, courseId: string) {
+  await db
+    .delete(studentEnrollments)
+    .where(
+      and(
+        eq(studentEnrollments.studentId, studentId),
+        eq(studentEnrollments.courseId, courseId),
+      ),
+    );
 }

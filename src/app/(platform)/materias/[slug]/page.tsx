@@ -1,13 +1,17 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import {
+  Atom,
   Calculator,
   FlaskConical,
   BookOpen,
   Landmark,
   Pen,
   Globe,
+  Cpu,
+  Heart,
+  Palette,
+  Dumbbell,
   type LucideIcon,
   ArrowLeft,
 } from "lucide-react";
@@ -16,26 +20,37 @@ import {
   getSubjectBySlug,
   getCoursesBySubject,
   getCourseProgressForUser,
+  getUserProfile,
+  getEnrolledCourseIds,
 } from "@/db/queries/content";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { CourseCard } from "./course-card";
 
 const iconMap: Record<string, LucideIcon> = {
+  Atom: Atom,
+  atom: Atom,
   calculator: Calculator,
+  Calculator: Calculator,
   "flask-conical": FlaskConical,
+  FlaskConical: FlaskConical,
   flask: FlaskConical,
   "book-open": BookOpen,
+  BookOpen: BookOpen,
   book: BookOpen,
   landmark: Landmark,
+  Landmark: Landmark,
   pen: Pen,
+  Pen: Pen,
   globe: Globe,
+  Globe: Globe,
+  Cpu: Cpu,
+  cpu: Cpu,
+  Heart: Heart,
+  heart: Heart,
+  Palette: Palette,
+  palette: Palette,
+  Dumbbell: Dumbbell,
+  dumbbell: Dumbbell,
 };
 
 export async function generateMetadata({
@@ -69,7 +84,14 @@ export default async function SubjectCoursesPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const coursesList = await getCoursesBySubject(subject.id);
+  const [coursesList, profile, enrolledIds] = await Promise.all([
+    getCoursesBySubject(subject.id),
+    user ? getUserProfile(user.id) : null,
+    user ? getEnrolledCourseIds(user.id) : ([] as string[]),
+  ]);
+
+  const gradeLevel = profile?.gradeLevel ?? null;
+  const isCurricular = subject.category === "curricular";
 
   const coursesWithProgress = await Promise.all(
     coursesList.map(async (course) => {
@@ -83,9 +105,32 @@ export default async function SubjectCoursesPage({
         }
       }
       const pct = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
-      return { ...course, completedLessons, totalLessons, progress: pct };
+      const matchesGrade =
+        !isCurricular ||
+        !gradeLevel ||
+        !course.gradeLevels ||
+        course.gradeLevels.split(",").includes(gradeLevel);
+      return {
+        id: course.id,
+        name: course.name,
+        slug: course.slug,
+        description: course.description,
+        thumbnailUrl: course.thumbnailUrl,
+        completedLessons,
+        totalLessons,
+        progress: pct,
+        matchesGrade,
+      };
     }),
   );
+
+  // Sort: matching grade first, then non-matching
+  const sortedCourses = isCurricular && gradeLevel
+    ? [
+        ...coursesWithProgress.filter((c) => c.matchesGrade),
+        ...coursesWithProgress.filter((c) => !c.matchesGrade),
+      ]
+    : coursesWithProgress;
 
   const Icon = iconMap[subject.icon ?? "book"] ?? BookOpen;
 
@@ -114,42 +159,15 @@ export default async function SubjectCoursesPage({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {coursesWithProgress.map((course) => (
-          <Link
+        {sortedCourses.map((course) => (
+          <CourseCard
             key={course.id}
-            href={`/materias/${subject.slug}/${course.slug}`}
-          >
-            <Card className="group h-full transition-shadow hover:shadow-md cursor-pointer">
-              {course.thumbnailUrl && (
-                <div className="relative h-36 overflow-hidden rounded-t-xl">
-                  <Image
-                    src={course.thumbnailUrl}
-                    alt={course.name}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="object-cover"
-                  />
-                </div>
-              )}
-              <CardHeader>
-                <CardTitle className="text-base group-hover:text-primary transition-colors">
-                  {course.name}
-                </CardTitle>
-                <CardDescription>{course.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      {course.completedLessons}/{course.totalLessons} licoes
-                    </span>
-                    <span className="font-medium">{course.progress}%</span>
-                  </div>
-                  <Progress value={course.progress} />
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+            course={course}
+            subjectSlug={subject.slug}
+            isCurricular={isCurricular}
+            gradeLevel={gradeLevel}
+            enrolled={enrolledIds.includes(course.id)}
+          />
         ))}
       </div>
 

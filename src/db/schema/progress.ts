@@ -50,6 +50,13 @@ export const courseProgress = pgTable("course_progress", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const studentEnrollments = pgTable("student_enrollments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  studentId: uuid("student_id").notNull(),
+  courseId: uuid("course_id").notNull(),
+  enrolledAt: timestamp("enrolled_at").defaultNow().notNull(),
+});
+
 export const studentStats = pgTable("student_stats", {
   id: uuid("id").defaultRandom().primaryKey(),
   studentId: uuid("student_id").notNull(),

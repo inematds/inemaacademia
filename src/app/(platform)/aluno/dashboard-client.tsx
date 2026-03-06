@@ -26,7 +26,19 @@ import { Button } from "@/components/ui/button";
 import { MasteryBar } from "@/components/progress/mastery-bar";
 import type { MasteryLevel } from "@/services/mastery";
 
+interface EnrolledCourse {
+  courseId: string;
+  courseName: string;
+  courseSlug: string;
+  courseDescription: string | null;
+  subjectSlug: string;
+  subjectName: string;
+  subjectIcon: string | null;
+  subjectColor: string | null;
+}
+
 interface StudentDashboardClientProps {
+  enrolledCourses: EnrolledCourse[];
   profile: {
     fullName: string;
     avatarUrl: string | null;
@@ -96,6 +108,7 @@ function formatTime(seconds: number): string {
 }
 
 export function StudentDashboardClient({
+  enrolledCourses,
   profile,
   stats,
   coursesInProgress,
@@ -170,6 +183,67 @@ export function StudentDashboardClient({
         />
       </motion.div>
 
+      {/* Meus Cursos (enrolled) */}
+      <motion.div variants={itemVariants}>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Meus Cursos
+              </CardTitle>
+              <Button size="sm" variant="outline" asChild>
+                <Link href="/materias">
+                  Explorar materias
+                </Link>
+              </Button>
+            </div>
+            <CardDescription>
+              Cursos que voce selecionou para estudar
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {enrolledCourses.length === 0 ? (
+              <div className="text-center py-6">
+                <p className="text-sm text-muted-foreground mb-3">
+                  Voce ainda nao selecionou nenhum curso.
+                </p>
+                <Button asChild>
+                  <Link href="/materias">Escolher cursos</Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {enrolledCourses.map((course) => (
+                  <Link
+                    key={course.courseId}
+                    href={`/materias/${course.subjectSlug}/${course.courseSlug}`}
+                  >
+                    <div className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-accent">
+                      <div
+                        className="flex size-9 shrink-0 items-center justify-center rounded-lg text-white text-xs font-bold"
+                        style={{ backgroundColor: course.subjectColor ?? "#3B82F6" }}
+                      >
+                        {course.subjectName.slice(0, 2).toUpperCase()}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">
+                          {course.courseName}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {course.subjectName}
+                        </p>
+                      </div>
+                      <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Courses in progress */}
         <motion.div variants={itemVariants}>
@@ -187,7 +261,7 @@ export function StudentDashboardClient({
               {coursesInProgress.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Voce ainda nao comecou nenhum curso.{" "}
-                  <Link href="/explorar" className="text-primary underline">
+                  <Link href="/materias" className="text-primary underline">
                     Explorar cursos
                   </Link>
                 </p>
