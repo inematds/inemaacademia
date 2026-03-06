@@ -11,6 +11,11 @@ import { lessonProgress, courseProgress } from "@/db/schema/progress";
 import { profiles } from "@/db/schema/auth";
 import { studentStats } from "@/db/schema/progress";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function isValidUuid(id: string) {
+  return UUID_RE.test(id);
+}
+
 // ---------------------------------------------------------------------------
 // Subjects
 // ---------------------------------------------------------------------------
@@ -33,6 +38,7 @@ export async function getSubjectBySlug(slug: string) {
 }
 
 export async function getSubjectById(id: string) {
+  if (!isValidUuid(id)) return null;
   const result = await db
     .select()
     .from(subjects)
@@ -67,6 +73,7 @@ export async function getCourseBySlug(slug: string) {
 }
 
 export async function getCourseById(id: string) {
+  if (!isValidUuid(id)) return null;
   const result = await db
     .select()
     .from(courses)
@@ -108,6 +115,7 @@ export async function getUnitsByCourse(courseId: string) {
 }
 
 export async function getUnitById(id: string) {
+  if (!isValidUuid(id)) return null;
   const result = await db
     .select()
     .from(units)
@@ -129,6 +137,7 @@ export async function getLessonsByUnit(unitId: string) {
 }
 
 export async function getLessonById(id: string) {
+  if (!isValidUuid(id)) return null;
   const result = await db
     .select()
     .from(lessons)
@@ -138,6 +147,7 @@ export async function getLessonById(id: string) {
 }
 
 export async function getLessonContent(lessonId: string) {
+  if (!isValidUuid(lessonId)) return null;
   const result = await db
     .select()
     .from(lessonContent)
