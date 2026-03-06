@@ -10,12 +10,6 @@ import {
   Circle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import {
-  getSubjectBySlug,
-  getCourseBySlug,
-  getCourseWithUnitsAndLessons,
-  getLessonProgressForUser,
-} from "@/db/queries/content";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -46,7 +40,13 @@ export async function generateMetadata({
   params: Promise<{ slug: string; cursoSlug: string }>;
 }) {
   const { cursoSlug } = await params;
-  const course = await getCourseBySlug(cursoSlug);
+  const supabase = await createClient();
+  const { data: course } = await supabase
+    .from("courses")
+    .select("name")
+    .eq("slug", cursoSlug)
+    .eq("is_active", true)
+    .single();
   return {
     title: course
       ? `${course.name} | INEMA Academia`
@@ -54,43 +54,105 @@ export async function generateMetadata({
   };
 }
 
+type UnitRow = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  order: number;
+};
+
+type LessonRow = {
+  id: string;
+  unit_id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  type: string;
+  order: number;
+};
+
 export default async function CourseDetailPage({
   params,
 }: {
   params: Promise<{ slug: string; cursoSlug: string }>;
 }) {
   const { slug, cursoSlug } = await params;
-  const subject = await getSubjectBySlug(slug);
+  const supabase = await createClient();
+
+  // Fetch subject
+  const { data: subject } = await supabase
+    .from("subjects")
+    .select("id, name, slug, color")
+    .eq("slug", slug)
+    .eq("is_active", true)
+    .single();
+
   if (!subject) notFound();
 
-  const course = await getCourseBySlug(cursoSlug);
-  if (!course || course.subjectId !== subject.id) notFound();
+  // Fetch course
+  const { data: course } = await supabase
+    .from("courses")
+    .select("id, name, slug, description, subject_id")
+    .eq("slug", cursoSlug)
+    .eq("is_active", true)
+    .single();
 
-  const courseData = await getCourseWithUnitsAndLessons(course.id);
-  if (!courseData) notFound();
+  if (!course || course.subject_id !== subject.id) notFound();
 
-  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Gather lesson progress for the user
+  // Fetch units first
+  const { data: unitsList } = await supabase
+    .from("units")
+    .select("id, name, slug, description, order")
+    .eq("course_id", course.id)
+    .eq("is_active", true)
+    .order("order");
+
+  const units = (unitsList ?? []) as UnitRow[];
+  const unitIds = units.map((u) => u.id);
+
+  // Fetch lessons and progress in parallel
+  const [{ data: lessonsData }, progressResult] = await Promise.all([
+    unitIds.length > 0
+      ? supabase
+          .from("lessons")
+          .select("id, unit_id, name, slug, description, type, order")
+          .in("unit_id", unitIds)
+          .eq("is_active", true)
+          .order("order")
+      : Promise.resolve({ data: [] as LessonRow[] }),
+    user
+      ? supabase
+          .from("lesson_progress")
+          .select("lesson_id, status")
+          .eq("student_id", user.id)
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const lessons = (lessonsData ?? []) as LessonRow[];
+
+  // Build progress map
   const progressMap = new Map<string, string>();
-  if (user) {
-    for (const unit of courseData.units) {
-      for (const lesson of unit.lessons) {
-        const progress = await getLessonProgressForUser(user.id, lesson.id);
-        if (progress) {
-          progressMap.set(lesson.id, progress.status);
-        }
+  const lessonIds = new Set(lessons.map((l) => l.id));
+  if (progressResult?.data) {
+    for (const p of progressResult.data) {
+      if (lessonIds.has(p.lesson_id)) {
+        progressMap.set(p.lesson_id, p.status);
       }
     }
   }
 
-  const totalLessons = courseData.units.reduce(
-    (sum, u) => sum + u.lessons.length,
-    0,
-  );
+  // Group lessons by unit
+  const unitsWithLessons = units.map((unit) => ({
+    ...unit,
+    lessons: lessons.filter((l) => l.unit_id === unit.id),
+  }));
+
+  const totalLessons = lessons.length;
   const completedCount = Array.from(progressMap.values()).filter(
     (s) => s === "completed",
   ).length;
@@ -120,10 +182,8 @@ export default async function CourseDetailPage({
               {subject.name}
             </Link>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {courseData.name}
-          </h1>
-          <p className="text-muted-foreground">{courseData.description}</p>
+          <h1 className="text-2xl font-bold tracking-tight">{course.name}</h1>
+          <p className="text-muted-foreground">{course.description}</p>
         </div>
       </div>
 
@@ -141,10 +201,10 @@ export default async function CourseDetailPage({
       {/* Units accordion */}
       <Accordion
         type="multiple"
-        defaultValue={courseData.units.map((u) => u.id)}
+        defaultValue={unitsWithLessons.map((u) => u.id)}
         className="space-y-3"
       >
-        {courseData.units.map((unit, unitIndex) => {
+        {unitsWithLessons.map((unit, unitIndex) => {
           const unitCompleted = unit.lessons.filter(
             (l) => progressMap.get(l.id) === "completed",
           ).length;
@@ -216,7 +276,7 @@ export default async function CourseDetailPage({
         })}
       </Accordion>
 
-      {courseData.units.length === 0 && (
+      {unitsWithLessons.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <FileText className="size-12 text-muted-foreground/50 mb-4" />
           <h2 className="text-lg font-semibold">Nenhuma unidade disponivel</h2>

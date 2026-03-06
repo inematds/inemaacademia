@@ -1,8 +1,5 @@
 "use server";
 
-import { eq, and } from "drizzle-orm";
-import { db } from "@/db";
-import { lessonProgress } from "@/db/schema/progress";
 import { createClient } from "@/lib/supabase/server";
 
 export async function markLessonComplete(lessonId: string) {
@@ -16,34 +13,28 @@ export async function markLessonComplete(lessonId: string) {
   }
 
   // Check if progress record exists
-  const existing = await db
-    .select()
-    .from(lessonProgress)
-    .where(
-      and(
-        eq(lessonProgress.studentId, user.id),
-        eq(lessonProgress.lessonId, lessonId),
-      ),
-    )
-    .limit(1);
+  const { data: existing } = await supabase
+    .from("lesson_progress")
+    .select("id")
+    .eq("student_id", user.id)
+    .eq("lesson_id", lessonId)
+    .single();
 
-  if (existing.length > 0) {
-    // Update existing
-    await db
-      .update(lessonProgress)
-      .set({
+  if (existing) {
+    await supabase
+      .from("lesson_progress")
+      .update({
         status: "completed",
-        completedAt: new Date(),
+        completed_at: new Date().toISOString(),
       })
-      .where(eq(lessonProgress.id, existing[0].id));
+      .eq("id", existing.id);
   } else {
-    // Insert new
-    await db.insert(lessonProgress).values({
-      studentId: user.id,
-      lessonId,
+    await supabase.from("lesson_progress").insert({
+      student_id: user.id,
+      lesson_id: lessonId,
       status: "completed",
-      completedAt: new Date(),
-      timeSpentSeconds: 0,
+      completed_at: new Date().toISOString(),
+      time_spent_seconds: 0,
     });
   }
 
