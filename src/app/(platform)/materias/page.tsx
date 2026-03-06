@@ -16,7 +16,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getSubjects, getSubjectProgressForUser, getUserProfile } from "@/db/queries/content";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -62,21 +61,19 @@ export const metadata = {
   title: "Materias | INEMA Academia",
 };
 
-type SubjectWithProgress = {
+type SubjectRow = {
   id: string;
   name: string;
   slug: string;
   description: string | null;
   icon: string | null;
   color: string | null;
-  category: "curricular" | "extracurricular";
+  category: string;
   order: number;
-  isActive: boolean;
-  createdAt: Date;
   progress: number;
 };
 
-function SubjectCard({ subject }: { subject: SubjectWithProgress }) {
+function SubjectCard({ subject }: { subject: SubjectRow }) {
   const Icon = iconMap[subject.icon ?? "book"] ?? BookOpen;
 
   return (
@@ -118,25 +115,23 @@ export default async function MateriasPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [subjectsList, profile] = await Promise.all([
-    getSubjects(),
-    user ? getUserProfile(user.id) : null,
+  // Fetch subjects and profile in parallel
+  const [{ data: subjectsList }, profileResult] = await Promise.all([
+    supabase
+      .from("subjects")
+      .select("id, name, slug, description, icon, color, category, order")
+      .eq("is_active", true)
+      .order("order"),
+    user
+      ? supabase.from("profiles").select("grade_level").eq("id", user.id).single()
+      : Promise.resolve({ data: null }),
   ]);
 
-  const gradeLevel = profile?.gradeLevel ?? null;
+  const gradeLevel = profileResult?.data?.grade_level ?? null;
+  const subjects = (subjectsList ?? []).map((s) => ({ ...s, progress: 0 }));
 
-  const subjectsWithProgress: SubjectWithProgress[] = await Promise.all(
-    subjectsList.map(async (subject) => {
-      let progress = 0;
-      if (user) {
-        progress = await getSubjectProgressForUser(user.id, subject.id);
-      }
-      return { ...subject, progress };
-    }),
-  );
-
-  const curricular = subjectsWithProgress.filter((s) => s.category === "curricular");
-  const extracurricular = subjectsWithProgress.filter((s) => s.category === "extracurricular");
+  const curricular = subjects.filter((s) => s.category === "curricular");
+  const extracurricular = subjects.filter((s) => s.category === "extracurricular");
 
   return (
     <div className="space-y-8">
@@ -186,7 +181,7 @@ export default async function MateriasPage() {
         </section>
       )}
 
-      {subjectsWithProgress.length === 0 && (
+      {subjects.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <BookOpen className="size-12 text-muted-foreground/50 mb-4" />
           <h2 className="text-lg font-semibold">Nenhuma materia disponivel</h2>

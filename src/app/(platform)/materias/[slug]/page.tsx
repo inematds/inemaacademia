@@ -16,12 +16,6 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import {
-  getSubjectBySlug,
-  getCoursesBySubject,
-  getCourseProgressForUser,
-  getUserProfile,
-} from "@/db/queries/content";
 import { Button } from "@/components/ui/button";
 import { CourseCard } from "./course-card";
 
@@ -58,7 +52,13 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const subject = await getSubjectBySlug(slug);
+  const supabase = await createClient();
+  const { data: subject } = await supabase
+    .from("subjects")
+    .select("name")
+    .eq("slug", slug)
+    .eq("is_active", true)
+    .single();
   return {
     title: subject
       ? `${subject.name} | INEMA Academia`
@@ -72,73 +72,70 @@ export default async function SubjectCoursesPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const subject = await getSubjectBySlug(slug);
+  const supabase = await createClient();
+
+  // Fetch subject
+  const { data: subject } = await supabase
+    .from("subjects")
+    .select("id, name, slug, description, icon, color, category")
+    .eq("slug", slug)
+    .eq("is_active", true)
+    .single();
 
   if (!subject) {
     notFound();
   }
 
-  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [coursesList, profile] = await Promise.all([
-    getCoursesBySubject(subject.id),
-    user ? getUserProfile(user.id) : null,
+  // Fetch courses, profile, enrollments in parallel
+  const [{ data: coursesList }, profileResult, enrollResult] = await Promise.all([
+    supabase
+      .from("courses")
+      .select("id, name, slug, description, thumbnail_url, grade_levels, order")
+      .eq("subject_id", subject.id)
+      .eq("is_active", true)
+      .order("order"),
+    user
+      ? supabase.from("profiles").select("grade_level").eq("id", user.id).single()
+      : Promise.resolve({ data: null }),
+    user
+      ? supabase.from("student_enrollments").select("course_id").eq("student_id", user.id)
+      : Promise.resolve({ data: null }),
   ]);
 
-  // Fetch enrolled course IDs via supabase (respects RLS)
-  let enrolledIds: string[] = [];
-  if (user) {
-    const { data: enrollRows } = await supabase
-      .from("student_enrollments")
-      .select("course_id")
-      .eq("student_id", user.id);
-    enrolledIds = (enrollRows ?? []).map((r) => r.course_id);
-  }
-
-  const gradeLevel = profile?.gradeLevel ?? null;
+  const gradeLevel = profileResult?.data?.grade_level ?? null;
   const isCurricular = subject.category === "curricular";
+  const enrolledIds = (enrollResult?.data ?? []).map((r: { course_id: string }) => r.course_id);
 
-  const coursesWithProgress = await Promise.all(
-    coursesList.map(async (course) => {
-      let completedLessons = 0;
-      let totalLessons = 0;
-      if (user) {
-        const progress = await getCourseProgressForUser(user.id, course.id);
-        if (progress) {
-          completedLessons = progress.completedLessons;
-          totalLessons = progress.totalLessons;
-        }
-      }
-      const pct = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
-      const matchesGrade =
-        !isCurricular ||
-        !gradeLevel ||
-        !course.gradeLevels ||
-        course.gradeLevels.split(",").includes(gradeLevel);
-      return {
-        id: course.id,
-        name: course.name,
-        slug: course.slug,
-        description: course.description,
-        thumbnailUrl: course.thumbnailUrl,
-        completedLessons,
-        totalLessons,
-        progress: pct,
-        matchesGrade,
-      };
-    }),
-  );
+  const coursesWithData = (coursesList ?? []).map((course) => {
+    const matchesGrade =
+      !isCurricular ||
+      !gradeLevel ||
+      !course.grade_levels ||
+      course.grade_levels.split(",").includes(gradeLevel);
+    return {
+      id: course.id,
+      name: course.name,
+      slug: course.slug,
+      description: course.description,
+      thumbnailUrl: course.thumbnail_url,
+      completedLessons: 0,
+      totalLessons: 0,
+      progress: 0,
+      matchesGrade,
+    };
+  });
 
-  // Sort: matching grade first, then non-matching
+  // Sort: matching grade first
   const sortedCourses = isCurricular && gradeLevel
     ? [
-        ...coursesWithProgress.filter((c) => c.matchesGrade),
-        ...coursesWithProgress.filter((c) => !c.matchesGrade),
+        ...coursesWithData.filter((c) => c.matchesGrade),
+        ...coursesWithData.filter((c) => !c.matchesGrade),
       ]
-    : coursesWithProgress;
+    : coursesWithData;
 
   const Icon = iconMap[subject.icon ?? "book"] ?? BookOpen;
 
@@ -179,7 +176,7 @@ export default async function SubjectCoursesPage({
         ))}
       </div>
 
-      {coursesWithProgress.length === 0 && (
+      {sortedCourses.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <BookOpen className="size-12 text-muted-foreground/50 mb-4" />
           <h2 className="text-lg font-semibold">Nenhum curso disponivel</h2>
