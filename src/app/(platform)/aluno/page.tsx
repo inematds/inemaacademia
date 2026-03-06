@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getStudentEnrollments } from "@/db/queries/content";
 import { StudentDashboardClient } from "./dashboard-client";
 
 export const metadata = {
@@ -133,12 +132,32 @@ export default async function AlunoDashboardPage() {
     .single();
 
   // Fetch enrolled courses (selected by student)
-  let enrollments: Awaited<ReturnType<typeof getStudentEnrollments>> = [];
-  try {
-    enrollments = await getStudentEnrollments(studentId);
-  } catch {
-    // Table may not exist yet in some environments
-  }
+  const { data: enrollmentRows } = await supabase
+    .from("student_enrollments")
+    .select("course_id, enrolled_at, courses(id, name, slug, description, subject_id, subjects(name, slug, icon, color))")
+    .eq("student_id", studentId)
+    .order("enrolled_at", { ascending: true });
+
+  const enrollments = (enrollmentRows ?? []).map((e) => {
+    const c = e.courses as unknown as {
+      id: string;
+      name: string;
+      slug: string;
+      description: string | null;
+      subject_id: string;
+      subjects: { name: string; slug: string; icon: string | null; color: string | null } | null;
+    } | null;
+    return {
+      courseId: c?.id ?? "",
+      courseName: c?.name ?? "",
+      courseSlug: c?.slug ?? "",
+      courseDescription: c?.description ?? null,
+      subjectSlug: c?.subjects?.slug ?? "",
+      subjectName: c?.subjects?.name ?? "",
+      subjectIcon: c?.subjects?.icon ?? null,
+      subjectColor: c?.subjects?.color ?? null,
+    };
+  });
 
   // Fetch recent badges
   const { data: recentBadges } = await supabase

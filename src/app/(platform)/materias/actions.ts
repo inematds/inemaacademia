@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { enrollInCourse, unenrollFromCourse } from "@/db/queries/content";
 
 export async function toggleEnrollmentAction(courseId: string) {
   const supabase = await createClient();
@@ -14,7 +13,7 @@ export async function toggleEnrollmentAction(courseId: string) {
     return { error: "Nao autenticado" };
   }
 
-  // Check current enrollment via supabase (respects RLS)
+  // Check current enrollment
   const { data: existing } = await supabase
     .from("student_enrollments")
     .select("id")
@@ -23,9 +22,15 @@ export async function toggleEnrollmentAction(courseId: string) {
     .single();
 
   if (existing) {
-    await unenrollFromCourse(user.id, courseId);
+    await supabase
+      .from("student_enrollments")
+      .delete()
+      .eq("student_id", user.id)
+      .eq("course_id", courseId);
   } else {
-    await enrollInCourse(user.id, courseId);
+    await supabase
+      .from("student_enrollments")
+      .insert({ student_id: user.id, course_id: courseId });
   }
 
   revalidatePath("/materias");

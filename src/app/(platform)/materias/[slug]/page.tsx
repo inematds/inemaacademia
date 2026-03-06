@@ -21,7 +21,6 @@ import {
   getCoursesBySubject,
   getCourseProgressForUser,
   getUserProfile,
-  getEnrolledCourseIds,
 } from "@/db/queries/content";
 import { Button } from "@/components/ui/button";
 import { CourseCard } from "./course-card";
@@ -84,11 +83,20 @@ export default async function SubjectCoursesPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [coursesList, profile, enrolledIds] = await Promise.all([
+  const [coursesList, profile] = await Promise.all([
     getCoursesBySubject(subject.id),
     user ? getUserProfile(user.id) : null,
-    user ? getEnrolledCourseIds(user.id) : ([] as string[]),
   ]);
+
+  // Fetch enrolled course IDs via supabase (respects RLS)
+  let enrolledIds: string[] = [];
+  if (user) {
+    const { data: enrollRows } = await supabase
+      .from("student_enrollments")
+      .select("course_id")
+      .eq("student_id", user.id);
+    enrolledIds = (enrollRows ?? []).map((r) => r.course_id);
+  }
 
   const gradeLevel = profile?.gradeLevel ?? null;
   const isCurricular = subject.category === "curricular";
