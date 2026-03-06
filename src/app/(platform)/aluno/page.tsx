@@ -133,7 +133,12 @@ export default async function AlunoDashboardPage() {
     .single();
 
   // Fetch enrolled courses (selected by student)
-  const enrollments = await getStudentEnrollments(studentId);
+  let enrollments: Awaited<ReturnType<typeof getStudentEnrollments>> = [];
+  try {
+    enrollments = await getStudentEnrollments(studentId);
+  } catch {
+    // Table may not exist yet in some environments
+  }
 
   // Fetch recent badges
   const { data: recentBadges } = await supabase
