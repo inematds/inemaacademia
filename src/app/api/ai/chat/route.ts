@@ -10,8 +10,8 @@ const MAX_MESSAGES_PER_DAY = 50;
 
 const requestSchema = z.object({
   message: z.string().min(1).max(4000),
-  conversationId: z.string().uuid().optional(),
-  lessonId: z.string().uuid().optional(),
+  conversationId: z.guid().optional(),
+  lessonId: z.guid().optional(),
   context: z
     .object({
       subject: z.string().optional(),
@@ -39,6 +39,19 @@ export async function POST(req: NextRequest) {
         status: 401,
         headers: { "Content-Type": "application/json" },
       });
+    }
+
+    // Tutor IA desligado quando nao ha chave configurada: responde antes de
+    // gravar mensagens ou tentar qualquer chamada externa.
+    if (!process.env.ANTHROPIC_API_KEY?.trim()) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "O Tutor IA esta desligado neste ambiente. Peca ajuda ao seu professor ou tente mais tarde.",
+          code: "tutor_disabled",
+        }),
+        { status: 503, headers: { "Content-Type": "application/json" } },
+      );
     }
 
     // In-memory rate limiting (complements the DB-based daily limit)
@@ -178,15 +191,16 @@ export async function POST(req: NextRequest) {
 
     // Load lesson context if lessonId provided
     if (lessonId && !context?.lessonTitle) {
+      // lessons tem name/description (nao title/content)
       const { data: lesson } = await supabase
         .from("lessons")
-        .select("title, content")
+        .select("name, description")
         .eq("id", lessonId)
         .single();
 
       if (lesson) {
-        tutorContext.lessonTitle = lesson.title;
-        tutorContext.lessonContent = lesson.content;
+        tutorContext.lessonTitle = lesson.name;
+        tutorContext.lessonContent = lesson.description ?? undefined;
       }
     }
 

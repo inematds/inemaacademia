@@ -111,7 +111,50 @@ export default async function LessonPage({
     createdAt: new Date(lesson.created_at),
   };
 
-  const contentMapped = content
+  // Exercicios criados no construtor do admin ficam em exercises/questions.
+  // Se a licao nao tem exercise_data embutido, monta a partir dessas tabelas
+  // (so questoes de alternativa unica / V ou F, as que a tela sabe mostrar).
+  let builtExercise: { questions: Array<{ question: string; options: string[]; correct: number }> } | null = null;
+  if ((lesson.type === "exercise" || lesson.type === "quiz") && !content?.exercise_data) {
+    const { data: exRows } = await supabase
+      .from("exercises")
+      .select("id, order, questions(type, question_text, options, correct_answer, order)")
+      .eq("lesson_id", lesson.id)
+      .order("order");
+    const questions: Array<{ question: string; options: string[]; correct: number }> = [];
+    for (const ex of (exRows ?? []) as Array<{
+      questions: Array<{ type: string; question_text: string; options: unknown; correct_answer: unknown; order: number }> | null;
+    }>) {
+      for (const q of [...(ex.questions ?? [])].sort((a, b) => a.order - b.order)) {
+        const opts =
+          q.type === "true_false"
+            ? ["Verdadeiro", "Falso"]
+            : Array.isArray(q.options)
+              ? (q.options as unknown[]).map(String)
+              : [];
+        let correct = -1;
+        if (q.type === "true_false") correct = String(q.correct_answer) === "true" ? 0 : 1;
+        else if (typeof q.correct_answer === "number") correct = q.correct_answer;
+        else correct = opts.indexOf(String(q.correct_answer));
+        if ((q.type === "multiple_choice" || q.type === "true_false") && opts.length > 1 && correct >= 0) {
+          questions.push({ question: q.question_text, options: opts, correct });
+        }
+      }
+    }
+    if (questions.length) builtExercise = { questions };
+  }
+
+  const contentMapped = builtExercise
+    ? {
+        id: content?.id ?? `ex-${lesson.id}`,
+        lessonId: lesson.id,
+        contentType: "exercise",
+        videoUrl: null,
+        articleBody: null,
+        exerciseData: builtExercise,
+        createdAt: new Date(content?.created_at ?? lesson.created_at),
+      }
+    : content
     ? {
         id: content.id,
         lessonId: content.lesson_id,

@@ -160,14 +160,21 @@ export async function addStudent(classId: string, identifier: string) {
     return { error: "Turma nao encontrada." };
   }
 
-  // Find student by email
-  const { data: studentProfile } = await supabase
-    .from("profiles")
-    .select("id, full_name, role")
-    .eq("id", identifier)
-    .maybeSingle();
-
-  const studentId = studentProfile?.id;
+  // Aceita e-mail (via funcao SQL restrita a professor/admin) ou ID do aluno
+  const ident = identifier.trim();
+  let studentId: string | undefined;
+  if (ident.includes("@")) {
+    const { data } = await supabase.rpc("find_student_id_by_email", { p_email: ident });
+    studentId = (data as string | null) ?? undefined;
+  } else if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ident)) {
+    const { data: studentProfile } = await supabase
+      .from("profiles")
+      .select("id, role")
+      .eq("id", ident)
+      .eq("role", "aluno")
+      .maybeSingle();
+    studentId = studentProfile?.id;
+  }
 
   if (!studentId) {
     // Try to find by looking up auth user by email (via profiles)
@@ -458,12 +465,12 @@ export async function joinClass(code: string) {
 
   const normalizedCode = code.trim().toUpperCase();
 
-  // Find class by code
-  const { data: cls } = await supabase
-    .from("classes")
-    .select("id, name, is_active")
-    .eq("code", normalizedCode)
-    .single();
+  // Busca pelo codigo via funcao SECURITY DEFINER: o RLS de classes nao
+  // mostra a turma para quem ainda nao e membro.
+  const { data: found } = await supabase.rpc("find_class_by_code", { p_code: normalizedCode });
+  const cls = (Array.isArray(found) ? found[0] : found) as
+    | { id: string; name: string; is_active: boolean }
+    | undefined;
 
   if (!cls) {
     return { error: "Turma nao encontrada. Verifique o codigo." };

@@ -96,7 +96,7 @@ export function CourseCard({
             </div>
             <CardDescription>{course.description}</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-14">{/* espaco para o botao Selecionar (absolute) nao cobrir a barra */}
             <div className="space-y-3">
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">

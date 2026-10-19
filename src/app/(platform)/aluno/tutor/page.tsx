@@ -35,6 +35,8 @@ export default function TutorPage() {
   const [isLoadingList, setIsLoadingList] = useState(true);
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  // "Nova conversa" precisa abrir o chat vazio (antes o botao nao fazia nada)
+  const [newChat, setNewChat] = useState(false);
 
   const {
     messages,
@@ -106,9 +108,11 @@ export default function TutorPage() {
   function handleNewConversation() {
     setSelectedConvId(null);
     clearMessages();
+    setNewChat(true);
   }
 
   function handleBack() {
+    setNewChat(false);
     setSelectedConvId(null);
     clearMessages();
     loadConversations();
@@ -166,7 +170,7 @@ export default function TutorPage() {
   }
 
   // Chat view (selected conversation or new)
-  if (selectedConvId !== null || messages.length > 0) {
+  if (newChat || selectedConvId !== null || messages.length > 0) {
     return (
       <div className="flex h-[calc(100vh-4rem)] flex-col">
         {/* Chat header */}

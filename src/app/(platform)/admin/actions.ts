@@ -35,7 +35,7 @@ async function requireAdmin() {
 // Zod schemas
 // ---------------------------------------------------------------------------
 
-export const subjectSchema = z.object({
+const subjectSchema = z.object({
   name: z.string().min(1, "Nome e obrigatorio"),
   slug: z.string().min(1, "Slug e obrigatorio").regex(/^[a-z0-9-]+$/, "Slug deve conter apenas letras minusculas, numeros e hifens"),
   description: z.string().optional(),
@@ -45,7 +45,7 @@ export const subjectSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-export const courseSchema = z.object({
+const courseSchema = z.object({
   subjectId: z.string().uuid("Materia e obrigatoria"),
   name: z.string().min(1, "Nome e obrigatorio"),
   slug: z.string().min(1, "Slug e obrigatorio").regex(/^[a-z0-9-]+$/, "Slug deve conter apenas letras minusculas, numeros e hifens"),

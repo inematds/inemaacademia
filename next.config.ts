@@ -1,5 +1,17 @@
 import type { NextConfig } from "next";
 
+// Origem do Supabase configurado (hospedado ou local) liberada no CSP.
+// Sem isso, o navegador bloqueava o Supabase local (http://127.0.0.1:...).
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+let supabaseOrigins: string[] = [];
+try {
+  const u = new URL(supabaseUrl);
+  supabaseOrigins = [u.origin, `${u.protocol === "https:" ? "wss" : "ws"}://${u.host}`];
+} catch {
+  supabaseOrigins = [];
+}
+const supabaseLocalHttp = supabaseUrl.startsWith("http://");
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: "standalone",
@@ -59,14 +71,14 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: blob: https://*.supabase.co https://www.youtube.com https://i.ytimg.com https://www.geogebra.org",
               "font-src 'self' https://fonts.gstatic.com",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.anthropic.com",
+              ["connect-src 'self' https://*.supabase.co wss://*.supabase.co", ...supabaseOrigins].join(" "),
               "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.geogebra.org https://www.desmos.com https://player.vimeo.com",
               "media-src 'self' https://*.supabase.co",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
               "frame-ancestors 'none'",
-              ...(process.env.NODE_ENV === "production"
+              ...(process.env.NODE_ENV === "production" && !supabaseLocalHttp
                 ? ["upgrade-insecure-requests"]
                 : []),
             ].join("; "),

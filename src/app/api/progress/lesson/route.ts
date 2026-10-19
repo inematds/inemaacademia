@@ -7,7 +7,7 @@ import { checkBadgeConditions, type StudentStats } from "@/services/badges";
 import { progressLimiter } from "@/lib/rate-limit";
 
 const completeLessonSchema = z.object({
-  lessonId: z.string().uuid(),
+  lessonId: z.guid(),
   timeSpentSeconds: z.number().int().min(0).optional().default(0),
 });
 

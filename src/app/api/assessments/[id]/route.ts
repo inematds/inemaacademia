@@ -9,7 +9,7 @@ const submitAssessmentSchema = z.object({
   timeSpentSeconds: z.number().int().min(0),
   answers: z.array(
     z.object({
-      questionId: z.string().uuid(),
+      questionId: z.guid(),
       correct: z.boolean(),
       userAnswer: z.unknown(),
     }),

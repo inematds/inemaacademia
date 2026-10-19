@@ -25,7 +25,7 @@ const questionSchema = z.object({
 const exerciseSchema = z.object({
   title: z.string().min(1),
   instructions: z.string().default(""),
-  lessonId: z.string().uuid().optional(),
+  lessonId: z.guid(), // exercises.lesson_id e NOT NULL
   questions: z.array(questionSchema).min(1),
 });
 
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     .insert({
       title,
       instructions,
-      lesson_id: lessonId ?? null,
+      lesson_id: lessonId,
       order: 0,
     })
     .select("id")

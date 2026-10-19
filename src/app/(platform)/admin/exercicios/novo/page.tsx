@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -73,6 +74,19 @@ export default function ExerciseBuilderPage() {
   ]);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  // Licao onde o exercicio aparece (exercises.lesson_id e obrigatorio)
+  const [lessonId, setLessonId] = useState("");
+  const [lessonOptions, setLessonOptions] = useState<Array<{ id: string; name: string; type: string }>>([]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from("lessons")
+      .select("id, name, type")
+      .in("type", ["exercise", "quiz"])
+      .order("name")
+      .then(({ data }) => setLessonOptions(data ?? []));
+  }, []);
 
   function addQuestion() {
     setQuestions((prev) => [...prev, createEmptyQuestion()]);
@@ -144,6 +158,11 @@ export default function ExerciseBuilderPage() {
       return;
     }
 
+    if (!lessonId) {
+      toast.error("Escolha a licao (tipo Exercicio ou Quiz) onde o exercicio vai aparecer.");
+      return;
+    }
+
     const hasEmpty = questions.some((q) => !q.questionText.trim());
     if (hasEmpty) {
       toast.error("Todas as questoes precisam de enunciado.");
@@ -155,7 +174,7 @@ export default function ExerciseBuilderPage() {
       const res = await fetch("/api/admin/exercises", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, instructions, questions }),
+        body: JSON.stringify({ title, instructions, lessonId, questions }),
       });
 
       if (!res.ok) {
@@ -202,6 +221,24 @@ export default function ExerciseBuilderPage() {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ex: Exercicios de Equacoes do 1o Grau"
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lesson">Licao</Label>
+            <Select value={lessonId} onValueChange={setLessonId}>
+              <SelectTrigger id="lesson" className="w-full">
+                <SelectValue placeholder="Escolha uma licao do tipo Exercicio ou Quiz" />
+              </SelectTrigger>
+              <SelectContent>
+                {lessonOptions.map((l) => (
+                  <SelectItem key={l.id} value={l.id}>
+                    {l.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Crie antes, em Licoes, uma licao do tipo Exercicio. Questoes de multipla escolha e V/F aparecem para o aluno.
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="instructions">Instrucoes (opcional)</Label>

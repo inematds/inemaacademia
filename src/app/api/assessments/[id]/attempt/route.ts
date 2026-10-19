@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
 const updateAttemptSchema = z.object({
-  attemptId: z.string().uuid(),
+  attemptId: z.guid(),
   score: z.number().min(0).max(100).optional(),
   totalQuestions: z.number().int().min(0).optional(),
   correctAnswers: z.number().int().min(0).optional(),

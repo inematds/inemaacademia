@@ -58,9 +58,13 @@ const navItems = [
   { href: "/aluno/badges", label: "Conquistas", icon: Trophy },
 ];
 
+// Caminhos intermediarios que nao sao paginas (evita links/prefetch 404)
+const BREADCRUMB_SEM_PAGINA = new Set(["/licao", "/aluno/turma", "/professor/aluno", "/admin/exercicios"]);
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function getBreadcrumbs(pathname: string) {
   const segments = pathname.split("/").filter(Boolean);
-  const crumbs: Array<{ label: string; href: string }> = [];
+  const crumbs: Array<{ label: string; href: string; link: boolean }> = [];
 
   const labelMap: Record<string, string> = {
     materias: "Materias",
@@ -71,14 +75,32 @@ function getBreadcrumbs(pathname: string) {
     perfil: "Perfil",
     progresso: "Progresso",
     conquistas: "Conquistas",
+    badges: "Conquistas",
+    ranking: "Ranking",
+    tarefas: "Tarefas",
+    tutor: "Tutor IA",
+    avatares: "Avatares",
+    turma: "Turma",
+    entrar: "Entrar em turma",
+    professor: "Professor",
+    turmas: "Turmas",
+    atribuir: "Atribuir tarefa",
+    relatorios: "Relatorios",
+    unidades: "Unidades",
+    licoes: "Licoes",
+    exercicios: "Exercicios",
+    novo: "Novo",
+    quiz: "Quiz",
   };
 
   let currentPath = "";
   for (const segment of segments) {
     currentPath += `/${segment}`;
+    if (UUID_RE.test(segment)) continue; // ids nao viram rotulo
     crumbs.push({
       label: labelMap[segment] || decodeURIComponent(segment),
       href: currentPath,
+      link: !BREADCRUMB_SEM_PAGINA.has(currentPath),
     });
   }
 
@@ -204,7 +226,7 @@ export function PlatformShell({
             {breadcrumbs.map((crumb, i) => (
               <span key={crumb.href} className="flex items-center gap-1">
                 {i > 0 && <ChevronRight className="size-3" />}
-                {i === breadcrumbs.length - 1 ? (
+                {i === breadcrumbs.length - 1 || !crumb.link ? (
                   <span className="font-medium text-foreground">
                     {crumb.label}
                   </span>

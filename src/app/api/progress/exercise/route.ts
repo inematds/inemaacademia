@@ -8,7 +8,7 @@ import { checkBadgeConditions, type StudentStats } from "@/services/badges";
 import { progressLimiter } from "@/lib/rate-limit";
 
 const recordAnswerSchema = z.object({
-  questionId: z.string().uuid(),
+  questionId: z.guid(),
   answer: z.unknown(),
   isCorrect: z.boolean(),
   timeSpent: z.number().int().min(0),

@@ -6,6 +6,9 @@ import {
   LayoutDashboard,
   BookOpen,
   GraduationCap,
+  Layers,
+  FileText,
+  ListChecks,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +16,9 @@ const adminNavItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/materias", label: "Materias", icon: BookOpen, exact: false },
   { href: "/admin/cursos", label: "Cursos", icon: GraduationCap, exact: false },
+  { href: "/admin/unidades", label: "Unidades", icon: Layers, exact: false },
+  { href: "/admin/licoes", label: "Licoes", icon: FileText, exact: false },
+  { href: "/admin/exercicios/novo", label: "Novo exercicio", icon: ListChecks, exact: false },
 ];
 
 export function AdminSidebar() {

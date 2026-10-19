@@ -110,7 +110,37 @@ export default async function SubjectCoursesPage({
   const isCurricular = subject.category === "curricular";
   const enrolledIds = (enrollResult?.data ?? []).map((r: { course_id: string }) => r.course_id);
 
+  // Contagem real de licoes ativas por curso e das concluidas pelo usuario
+  // (antes ficava fixo em 0/0).
+  const courseIds = (coursesList ?? []).map((c) => c.id);
+  const { data: unitRows } = courseIds.length
+    ? await supabase
+        .from("units")
+        .select("course_id, lessons(id, is_active)")
+        .in("course_id", courseIds)
+        .eq("is_active", true)
+    : { data: [] as Array<{ course_id: string; lessons: Array<{ id: string; is_active: boolean }> }> };
+  const lessonsByCourse = new Map<string, string[]>();
+  for (const u of (unitRows ?? []) as Array<{ course_id: string; lessons: Array<{ id: string; is_active: boolean }> | null }>) {
+    const ids = (u.lessons ?? []).filter((l) => l.is_active).map((l) => l.id);
+    lessonsByCourse.set(u.course_id, [...(lessonsByCourse.get(u.course_id) ?? []), ...ids]);
+  }
+  const allLessonIds = [...lessonsByCourse.values()].flat();
+  const { data: doneRows } =
+    user && allLessonIds.length
+      ? await supabase
+          .from("lesson_progress")
+          .select("lesson_id")
+          .eq("student_id", user.id)
+          .eq("status", "completed")
+          .in("lesson_id", allLessonIds)
+      : { data: [] as Array<{ lesson_id: string }> };
+  const doneSet = new Set((doneRows ?? []).map((r: { lesson_id: string }) => r.lesson_id));
+
   const coursesWithData = (coursesList ?? []).map((course) => {
+    const lessonIds = lessonsByCourse.get(course.id) ?? [];
+    const totalLessons = lessonIds.length;
+    const completedLessons = lessonIds.filter((id) => doneSet.has(id)).length;
     const matchesGrade =
       !isCurricular ||
       !gradeLevel ||
@@ -122,9 +152,9 @@ export default async function SubjectCoursesPage({
       slug: course.slug,
       description: course.description,
       thumbnailUrl: course.thumbnail_url,
-      completedLessons: 0,
-      totalLessons: 0,
-      progress: 0,
+      completedLessons,
+      totalLessons,
+      progress: totalLessons ? Math.round((completedLessons / totalLessons) * 100) : 0,
       matchesGrade,
     };
   });

@@ -106,6 +106,9 @@ export function ClassDetailClient({
   const [addingStudent, setAddingStudent] = useState(false);
   const [editing, setEditing] = useState(false);
 
+  // Dialog controlado: fecha sozinho depois de salvar
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   async function handleAddStudent(formData: FormData) {
     setAddingStudent(true);
     const identifier = formData.get("identifier") as string;
@@ -116,6 +119,7 @@ export function ClassDetailClient({
       toast.error(result.error);
     } else {
       toast.success("Aluno adicionado com sucesso!");
+      setDialogOpen(false);
       router.refresh();
     }
   }
@@ -207,7 +211,7 @@ export function ClassDetailClient({
         {/* Students Tab */}
         <TabsContent value="students" className="space-y-4">
           <div className="flex justify-end">
-            <Dialog>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="sm">
                   <UserPlus className="h-4 w-4 mr-1" />
@@ -220,15 +224,15 @@ export function ClassDetailClient({
                 </DialogHeader>
                 <form action={handleAddStudent} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="identifier">ID do aluno</Label>
+                    <Label htmlFor="identifier">E-mail do aluno</Label>
                     <Input
                       id="identifier"
                       name="identifier"
-                      placeholder="ID do aluno"
+                      placeholder="aluno@escola.com"
                       required
                     />
                     <p className="text-xs text-muted-foreground">
-                      Informe o ID do aluno para adiciona-lo a turma.
+                      Informe o e-mail com que o aluno se cadastrou (ou o ID dele).
                       Ou compartilhe o codigo{" "}
                       <span className="font-mono font-bold">
                         {classData.code}

@@ -69,6 +69,9 @@ export function ClassesListClient({ classes }: Props) {
     return matchesFilter && matchesStatus;
   });
 
+  // Dialog controlado: fecha sozinho depois de salvar
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   async function handleCreate(formData: FormData) {
     setCreating(true);
     const result = await createClass(formData);
@@ -78,6 +81,7 @@ export function ClassesListClient({ classes }: Props) {
       toast.error(result.error);
     } else {
       toast.success(`Turma criada! Codigo: ${result.code}`);
+      setDialogOpen(false);
       router.refresh();
     }
   }
@@ -107,7 +111,7 @@ export function ClassesListClient({ classes }: Props) {
           </p>
         </div>
 
-        <Dialog>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />

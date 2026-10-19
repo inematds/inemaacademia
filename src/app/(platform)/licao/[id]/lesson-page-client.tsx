@@ -483,12 +483,35 @@ export function LessonPageClient({
 
   function handleMarkComplete() {
     startTransition(async () => {
-      const result = await markLessonComplete(lesson.id);
-      if (result.error) {
-        toast.error(result.error);
-      } else {
+      // /api/progress/lesson grava o progresso E calcula XP, sequencia e
+      // badges. Antes so a server action era chamada e o aluno nunca
+      // ganhava pontos. A action fica como reserva se a API falhar.
+      try {
+        const res = await fetch("/api/progress/lesson", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lessonId: lesson.id }),
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(data?.error ?? "Erro ao salvar progresso");
         setStatus("completed");
-        toast.success("Licao marcada como concluida!");
+        toast.success(
+          data?.xpGained
+            ? `Licao concluida! +${data.xpGained} XP`
+            : "Licao marcada como concluida!",
+        );
+        for (const b of (data?.newBadges ?? []) as Array<{ name: string }>) {
+          toast.success(`Nova conquista: ${b.name}`);
+        }
+        router.refresh();
+      } catch {
+        const result = await markLessonComplete(lesson.id);
+        if (result.error) {
+          toast.error(result.error);
+        } else {
+          setStatus("completed");
+          toast.success("Licao marcada como concluida!");
+        }
       }
     });
   }

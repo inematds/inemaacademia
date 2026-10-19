@@ -12,12 +12,50 @@
   --secondary-foreground: 0 0% 100%;
   --muted: 210 40% 94%;
   --muted-foreground: 215 20% 40%;
-  --accent: 42 96% 50%;
+  /* accent = fundo sutil de hover/skeleton (padrao shadcn); era ambar forte */
+  --accent: 201 60% 94%;
   --destructive: 0 70% 50%;
   --border: 214 32% 91%;
   --input: 214 32% 91%;
   --ring: 201 90% 45%;
   --radius: 0.875rem;
+  --accent-foreground: 222 47% 11%;
+  --destructive-foreground: 0 0% 100%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+}
+
+/* Tailwind 4: sem este mapeamento, utilitarios como bg-primary,
+   text-muted-foreground e border-border nao geravam CSS nenhum
+   (botoes sem cor, textos secundarios sem contraste). */
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: hsl(var(--border));
+  }
 }
 
 body {

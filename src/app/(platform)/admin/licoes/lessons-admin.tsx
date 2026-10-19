@@ -200,8 +200,8 @@ export function LessonsAdmin({ initialLessons, units }: Props) {
                     <span className="text-xs">{TYPE_LABELS[lesson.type] ?? lesson.type}</span>
                   </div>
                 </TableCell>
-                <TableCell className="font-medium">{lesson.name}</TableCell>
-                <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">
+                <TableCell className="font-medium whitespace-normal min-w-[10rem]">{lesson.name}</TableCell>
+                <TableCell className="text-sm text-muted-foreground hidden sm:table-cell whitespace-normal min-w-[12rem] max-w-[22rem]">
                   {lesson.unitName} / {lesson.courseName} / {lesson.subjectName}
                 </TableCell>
                 <TableCell>

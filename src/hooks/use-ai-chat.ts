@@ -80,6 +80,21 @@ export function useAiChat(options: UseAiChatOptions = {}) {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => null);
+          if (errorData?.code === "tutor_disabled") {
+            // Tutor sem chave configurada: responde no proprio chat, sem erro vermelho
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantMessageId
+                  ? {
+                      ...msg,
+                      content:
+                        "**O Tutor IA esta desligado neste ambiente.** Sua pergunta nao foi enviada. Enquanto isso, releia a licao ou peca ajuda ao seu professor.",
+                    }
+                  : msg
+              )
+            );
+            return;
+          }
           const errorMessage =
             errorData?.error ?? "Erro ao enviar mensagem. Tente novamente.";
           throw new Error(errorMessage);
