@@ -1,3 +1,5 @@
+import { diasEntre, hojeBR } from "@/lib/dates";
+
 export interface StreakResult {
   currentStreak: number;
   longestStreak: number;
@@ -7,13 +9,15 @@ export interface StreakResult {
 /**
  * Update the student's streak based on their last active date.
  * - If lastActive was yesterday: increment streak
- * - If lastActive was today: no change
+ * - If lastActive was today: no change (but a streak of 0 becomes 1)
  * - Otherwise: reset to 1
+ * `today` is the student's date in Brasilia (AAAA-MM-DD).
  */
 export function updateStreak(
   lastActiveDate: string | null,
   currentStreak: number,
   longestStreak: number,
+  today: string = hojeBR(),
 ): StreakResult {
   if (!lastActiveDate) {
     return {
@@ -23,20 +27,15 @@ export function updateStreak(
     };
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const diffDays = diasEntre(lastActiveDate, today);
 
-  const lastActive = new Date(lastActiveDate + "T00:00:00");
-  lastActive.setHours(0, 0, 0, 0);
-
-  const diffMs = today.getTime() - lastActive.getTime();
-  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) {
-    // Same day: no change
+  if (diffDays <= 0) {
+    // Same day: no change. Perfil antigo nascia com a data de hoje e
+    // sequencia 0; a primeira atividade do dia conta como 1.
+    const streak = Math.max(1, currentStreak);
     return {
-      currentStreak,
-      longestStreak,
+      currentStreak: streak,
+      longestStreak: Math.max(streak, longestStreak),
       xpBonus: 0,
     };
   }

@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { isGradable, optionsOf } from "@/lib/exercise-grading";
 import { createClient } from "@/lib/supabase/server";
 import { LessonPageClient } from "./lesson-page-client";
 
@@ -111,50 +112,25 @@ export default async function LessonPage({
     createdAt: new Date(lesson.created_at),
   };
 
-  // Exercicios criados no construtor do admin ficam em exercises/questions.
-  // Se a licao nao tem exercise_data embutido, monta a partir dessas tabelas
-  // (so questoes de alternativa unica / V ou F, as que a tela sabe mostrar).
-  let builtExercise: { questions: Array<{ question: string; options: string[]; correct: number }> } | null = null;
-  if ((lesson.type === "exercise" || lesson.type === "quiz") && !content?.exercise_data) {
-    const { data: exRows } = await supabase
-      .from("exercises")
-      .select("id, order, questions(type, question_text, options, correct_answer, order)")
-      .eq("lesson_id", lesson.id)
-      .order("order");
-    const questions: Array<{ question: string; options: string[]; correct: number }> = [];
-    for (const ex of (exRows ?? []) as Array<{
-      questions: Array<{ type: string; question_text: string; options: unknown; correct_answer: unknown; order: number }> | null;
-    }>) {
-      for (const q of [...(ex.questions ?? [])].sort((a, b) => a.order - b.order)) {
-        const opts =
-          q.type === "true_false"
-            ? ["Verdadeiro", "Falso"]
-            : Array.isArray(q.options)
-              ? (q.options as unknown[]).map(String)
-              : [];
-        let correct = -1;
-        if (q.type === "true_false") correct = String(q.correct_answer) === "true" ? 0 : 1;
-        else if (typeof q.correct_answer === "number") correct = q.correct_answer;
-        else correct = opts.indexOf(String(q.correct_answer));
-        if ((q.type === "multiple_choice" || q.type === "true_false") && opts.length > 1 && correct >= 0) {
-          questions.push({ question: q.question_text, options: opts, correct });
-        }
-      }
+  // Questoes do construtor do admin (exercises/questions) viram a secao
+  // "Pratique" de qualquer licao: artigo, video, exercicio ou quiz.
+  // O gabarito NAO vai para o navegador; a API corrige e grava a resposta.
+  // So alternativa unica e V/F (as que a tela sabe mostrar).
+  const { data: exRows } = await supabase
+    .from("exercises")
+    .select("id, order, questions(id, type, question_text, options, correct_answer, order)")
+    .eq("lesson_id", lesson.id)
+    .order("order");
+  const practice: Array<{ id: string; question: string; options: string[] }> = [];
+  for (const ex of (exRows ?? []) as Array<{
+    questions: Array<{ id: string; type: string; question_text: string; options: unknown; correct_answer: unknown; order: number }> | null;
+  }>) {
+    for (const q of [...(ex.questions ?? [])].sort((a, b) => a.order - b.order)) {
+      if (isGradable(q)) practice.push({ id: q.id, question: q.question_text, options: optionsOf(q) });
     }
-    if (questions.length) builtExercise = { questions };
   }
 
-  const contentMapped = builtExercise
-    ? {
-        id: content?.id ?? `ex-${lesson.id}`,
-        lessonId: lesson.id,
-        contentType: "exercise",
-        videoUrl: null,
-        articleBody: null,
-        exerciseData: builtExercise,
-        createdAt: new Date(content?.created_at ?? lesson.created_at),
-      }
-    : content
+  const contentMapped = content
     ? {
         id: content.id,
         lessonId: content.lesson_id,
@@ -232,6 +208,7 @@ export default async function LessonPage({
       nextLesson={nextLesson ? mapSibling(nextLesson) : null}
       userId={user.id}
       initialStatus={progressData?.status ?? "not_started"}
+      practice={practice}
     />
   );
 }

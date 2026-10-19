@@ -1,6 +1,6 @@
 # Revisão do INEMA Academia — outubro/2026
 
-Revisão feita em 19/10/2026 sobre o último código (março/2026), rodando tudo **localmente** (Supabase em Docker + Next em modo produção), sem nenhuma API ou serviço externo. Versão: **0.1.0 → 0.2.0**.
+Revisão feita em 19/10/2026 sobre o último código (março/2026), rodando tudo **localmente** (Supabase em Docker + Next em modo produção), sem nenhuma API ou serviço externo. Versão: **0.1.0 → 0.2.0** (e 0.3.0 na atualização da tarde, abaixo).
 
 ## Resumo (para o Nei)
 
@@ -105,24 +105,59 @@ Infra local nova: `supabase/config.toml` (portas 564xx, serviços pesados deslig
 
 **Alta**
 - **Conteúdo do 6º ano**: 89 lições só com título (o aluno vê "Conteúdo desta lição ainda não disponível").
-- **Exercícios**: nenhum exercício real no banco. Além disso, a resposta do aluno não é gravada nem dá XP por acerto (`/api/progress/exercise` e `student_answers` existem, mas a tela não chama); só "Marcar como concluída" pontua.
-- **Unidades sem série**: dentro do mesmo curso, o aluno do 8º vê também as unidades de 7º e 9º (a série só existe no nome da unidade). Precisa de coluna `grade_level` em `units` e filtro.
-- **38 unidades do seed-materias sem nenhuma lição** aparecem vazias para o aluno.
+- **Exercícios**: nenhum exercício real no banco. (A gravação das respostas com XP por acerto foi ligada na 0.3.0, #23–#26.)
+- ~~Unidades sem série~~ — resolvido na 0.3.0 (#21).
+- ~~38 unidades sem lição aparecem vazias~~ — escondidas do aluno na 0.3.0 (#22).
 
 **Média**
 - E-mail (confirmação/recuperação) precisa de SMTP próprio em produção; não há página dedicada de "nova senha".
 - `/api/avatar/select` não existe e a tabela `avatars` está vazia (tela de avatares sem função).
-- Conquista "Primeiro Exercício" é dada ao concluir um artigo; a sequência (streak) fica 0 no primeiro dia.
-- Professor/admin veem XP, nível e o menu do aluno no cabeçalho.
-- "Última atividade" um dia antes: `student_stats.last_active_date` (DATE) é lido como meia-noite UTC e exibido em UTC-3 (19/10 vira 18/10).
+- ~~Conquista "Primeiro Exercício" ao concluir artigo; sequência 0 no primeiro dia~~ — resolvido na 0.3.0 (#27, #30).
+- ~~Professor/admin veem XP e o menu do aluno~~ — resolvido na 0.3.0 (#31).
+- ~~"Última atividade" um dia antes~~ — resolvido na 0.3.0 (#28, #29).
 - Tabela de lições do admin sem busca nem paginação (196 linhas).
 - Arquivos legados confusos: `sql/seed-extracurricular-inema.sql` está quebrado (usa coluna inexistente; o `.ts` substitui), `src/db/migrations/0002_rls_policies.sql` é duplicado, o README cita `0001_schema.sql`, que não existe, e `src/db/seeds.ts` cria dados fictícios.
 - Modelo do tutor fixo em `claude-sonnet-4-20250514` (antigo).
 
 **Baixa**
 - Legenda de SVG cortada em algumas lições ("Amazonia (49%").
-- Não há lockfile versionado (gerei `package-lock.json` local, fora do commit).
+- ~~Sem lockfile~~ — versionado na 0.3.0.
 - 1 aviso de lint (`<img>`), sem erros.
+
+## Atualização 19/10/2026 (tarde) — correções da 0.3.0
+
+Segunda rodada, ainda **só local** (Supabase em Docker, sem API nem serviço externo). Versão **0.2.0 → 0.3.0**.
+
+### Corrigido
+
+| # | Problema | Correção | Onde |
+|---|---|---|---|
+| 21 | Aluno do 8º via as unidades do 7º e do 9º misturadas no mesmo curso | Coluna `units.grade_level` (preenchida pelo "(N° ano)" do nome e pelos IDs do seed do 6º: 27/89, 11/23, 9/15, 11/19 unidades/lições). O aluno vê primeiro a série dele; as outras ficam em **"Outras séries"**, fechadas. Professor/admin veem tudo com selo da série. Admin escolhe a série ao criar/editar unidade | `supabase/migrations/20261019000100_serie_na_unidade_e_streak.sql`, `materias/[slug]/[cursoSlug]/page.tsx`, `admin/unidades/*`, `api/admin/units/*`, `seed-7-8-9ano.ts`, `sql/seed-6ano-curriculum.sql` |
+| 22 | Unidades, cursos e matérias **sem nenhuma lição** apareciam vazios para o aluno (38 unidades BNCC, Vida Prática, Esporte) | Escondidos para o aluno; professor/admin continuam vendo | `materias/page.tsx`, `materias/[slug]/page.tsx`, `[cursoSlug]/page.tsx` |
+| 23 | **Respostas dos exercícios não eram gravadas** e acerto não dava XP | A tela manda cada resposta para `/api/progress/exercise`; grava em `student_answers`, atualiza domínio (relatório do professor) e mostra a explicação | `licao/[id]/lesson-page-client.tsx` (`PracticeExercise`) |
+| 24 | A API **acreditava no `isCorrect` do navegador** (dava para ganhar XP sem responder) e o gabarito ia no HTML da página | Correção feita no servidor com o gabarito do banco; o gabarito não vai mais para o navegador | `api/progress/exercise/route.ts`, `src/lib/exercise-grading.ts` |
+| 25 | Repetir a mesma questão acertada **somava XP de novo**; errar uma vez zerava o domínio e acertar 3 seguidas dava o bônus de 150 XP outra vez | XP só no 1º acerto de cada questão; domínio não cai com um erro (bônus uma vez só) | `api/progress/exercise/route.ts`, `services/mastery.ts` |
+| 26 | Questões do construtor só apareciam em lição do tipo exercício/quiz | Seção **"Pratique"** embaixo de qualquer lição (artigo, vídeo) que tenha questões | `licao/[id]/page.tsx` |
+| 27 | Sequência de dias ficava **0 no primeiro dia** (perfil nascia com a data de hoje) | Trigger cria com data nula; primeira atividade do dia conta 1 | migration acima, `services/streak.ts` |
+| 28 | Data do dia em **UTC**: quem estudava depois das 21h caía no dia seguinte | `hojeBR()` (America/Sao_Paulo) nas duas APIs de progresso e na sequência | `src/lib/dates.ts` |
+| 29 | "Última atividade" no relatório aparecia **um dia antes** | `formataDataBR()` lê a coluna DATE sem passar por UTC | `professor/turmas/[id]/relatorios/client.tsx` |
+| 30 | Conquista "Primeiro Exercício" saía ao concluir um **artigo** | Conta a primeira questão acertada | as duas APIs de progresso |
+| 31 | Professor/admin viam XP, nível e o menu do aluno | Cabeçalho sem XP para eles; menu: Matérias + Minhas turmas (professor) / Administração (admin); item "Configurações" duplicado removido | `platform-shell.tsx` |
+| 32 | **Service worker guardava as páginas logadas** (stale-while-revalidate): ao recarregar, XP/progresso velhos; em computador compartilhado da escola, as páginas de um aluno ficavam no cache para o próximo | Páginas sempre da rede (sem internet → `/offline`); só arquivos estáticos em cache; cache v2 apaga o antigo | `public/sw.js` |
+| + | README mandava rodar `0001_schema.sql` (não existe); arquivos legados sem aviso | README aponta `supabase/migrations/`; legados marcados no topo | `README.md`, `sql/seed-extracurricular-inema.sql`, `src/db/migrations/0002_rls_policies.sql`, `src/db/seeds.ts` |
+| + | Sem lockfile | `package-lock.json` versionado | |
+
+### Testes (19/10/2026)
+
+- `npm test`: **52/52** (novos: datas em Brasília, gabarito, domínio, sequência).
+- `npm run build`: ok.
+- e2e Playwright: **40/40**.
+- `node revisao/correcoes-030.cjs` (novo): **39/39 em 1366 px e 38/38 em 390 px**. Cobre: unidades da série primeiro + "Outras séries", vazios escondidos, Pratique sob artigo, +20/+160/+0 XP, isCorrect forjado recusado, gabarito fora do HTML, sequência 1, professor sem XP, admin mantém a série ao salvar, data do relatório, sem rolagem lateral, sem erro 500.
+- `node revisao/fluxos.cjs`: igual à rodada anterior. 2 passos "concluir" falham porque o aluno de teste já concluiu aquelas lições (o botão vira "Concluída").
+
+### Limites que continuam
+- Exercício **escrito dentro da lição** (`lesson_content.exercise_data`, só o exemplo do seed) é corrigido na tela e **não grava**. Os do construtor do admin gravam. Novos exercícios devem ser criados pelo construtor.
+- O **conteúdo** continua sendo o que falta: 89 lições do 6º só com título e nenhum banco de questões real (as 3 questões de "Equações com Duas Incógnitas" são de teste, só no banco local).
 
 ## Conteúdo real no banco (contagem)
 

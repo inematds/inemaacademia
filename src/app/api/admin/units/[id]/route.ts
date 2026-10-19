@@ -13,11 +13,11 @@ export async function PUT(request: NextRequest, { params }: Params) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Dados invalidos", details: parsed.error.flatten() }, { status: 400 });
   }
-  const { name, slug, description, courseId } = parsed.data;
+  const { name, slug, description, courseId, gradeLevel } = parsed.data;
 
   const { error } = await auth.supabase
     .from("units")
-    .update({ name, slug: slug || slugify(name), description: description || null, course_id: courseId })
+    .update({ name, slug: slug || slugify(name), description: description || null, course_id: courseId, grade_level: gradeLevel ?? null })
     .eq("id", id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });

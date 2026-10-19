@@ -443,6 +443,128 @@ function ExerciseContent({ data }: { data: unknown }) {
   );
 }
 
+type PracticeQuestion = { id: string; question: string; options: string[] };
+
+type PracticeResult = {
+  isCorrect: boolean;
+  correctIndex: number;
+  explanation: string | null;
+  xpGained: number;
+};
+
+// Questoes do banco: cada resposta vai para /api/progress/exercise, que
+// corrige com o gabarito do servidor, grava em student_answers, da XP no
+// primeiro acerto e alimenta o "dominio" dos relatorios do professor.
+function PracticeExercise({ questions }: { questions: PracticeQuestion[] }) {
+  const router = useRouter();
+  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [results, setResults] = useState<Record<string, PracticeResult>>({});
+  const [sending, setSending] = useState(false);
+  const [startedAt, setStartedAt] = useState(() => Date.now());
+  const checked = Object.keys(results).length > 0;
+  const allAnswered = questions.every((q) => answers[q.id] !== undefined);
+
+  async function handleCheck() {
+    setSending(true);
+    const timeSpent = Math.round((Date.now() - startedAt) / 1000 / questions.length);
+    const next: Record<string, PracticeResult> = {};
+    let xp = 0;
+    let failed = 0;
+    const badges: string[] = [];
+    for (const q of questions) {
+      try {
+        const res = await fetch("/api/progress/exercise", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ questionId: q.id, answer: answers[q.id], timeSpent }),
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data) throw new Error(data?.error ?? "erro");
+        next[q.id] = {
+          isCorrect: data.isCorrect,
+          correctIndex: data.correctIndex,
+          explanation: data.explanation ?? null,
+          xpGained: data.xpGained ?? 0,
+        };
+        xp += data.xpGained ?? 0;
+        for (const b of (data.newBadges ?? []) as Array<{ name: string }>) badges.push(b.name);
+      } catch {
+        failed++;
+      }
+    }
+    setResults(next);
+    setSending(false);
+    if (failed) toast.error("Nao foi possivel corrigir algumas questoes. Tente de novo.");
+    if (xp > 0) toast.success(`+${xp} XP`);
+    for (const b of badges) toast.success(`Nova conquista: ${b}`);
+    if (xp > 0 || badges.length) router.refresh();
+  }
+
+  function handleRetry() {
+    setAnswers({});
+    setResults({});
+    setStartedAt(Date.now());
+  }
+
+  const correctCount = questions.filter((q) => results[q.id]?.isCorrect).length;
+
+  return (
+    <div className="space-y-6">
+      {questions.map((q, qi) => {
+        const r = results[q.id];
+        return (
+          <div key={q.id} className="rounded-lg border p-4 space-y-3">
+            <h3 className="font-medium">
+              Questao {qi + 1}: {q.question}
+            </h3>
+            <div className="space-y-2">
+              {q.options.map((opt, oi) => (
+                <button
+                  key={oi}
+                  type="button"
+                  aria-pressed={answers[q.id] === oi}
+                  onClick={() => {
+                    if (!checked) setAnswers((prev) => ({ ...prev, [q.id]: oi }));
+                  }}
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-sm text-left transition-colors min-h-[48px]",
+                    answers[q.id] === oi && !checked && "border-primary bg-primary/5",
+                    r && oi === r.correctIndex && "border-green-500 bg-green-50 dark:bg-green-950/40",
+                    r && answers[q.id] === oi && !r.isCorrect && "border-red-500 bg-red-50 dark:bg-red-950/40",
+                  )}
+                >
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full border text-xs font-medium">
+                    {String.fromCharCode(65 + oi)}
+                  </span>
+                  {opt}
+                </button>
+              ))}
+            </div>
+            {r?.explanation && (
+              <p className="text-sm text-muted-foreground">{r.explanation}</p>
+            )}
+          </div>
+        );
+      })}
+
+      {!checked ? (
+        <Button onClick={handleCheck} disabled={sending || !allAnswered} className="w-full min-h-[44px]">
+          {sending ? "Corrigindo..." : "Verificar respostas"}
+        </Button>
+      ) : (
+        <div className="rounded-lg border bg-muted/50 p-4 text-center space-y-3">
+          <p className="font-medium">
+            Voce acertou {correctCount} de {questions.length} questoes!
+          </p>
+          <Button variant="outline" onClick={handleRetry} className="min-h-[44px]">
+            Tentar de novo
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function LessonPageClient({
   lesson,
   content,
@@ -454,6 +576,7 @@ export function LessonPageClient({
   nextLesson,
   userId: _userId,
   initialStatus,
+  practice = [],
 }: {
   lesson: Lesson;
   content: LessonContentData;
@@ -465,6 +588,7 @@ export function LessonPageClient({
   nextLesson: Lesson | null;
   userId: string;
   initialStatus: string;
+  practice?: PracticeQuestion[];
 }) {
   const router = useRouter();
   const [status, setStatus] = useState(initialStatus);
@@ -617,14 +741,28 @@ export function LessonPageClient({
             <ExerciseContent data={content.exerciseData} />
           )}
 
-          {!content && (
+          {!content && practice.length === 0 && (
             <div className="flex items-center justify-center py-16">
               <p className="text-muted-foreground">
                 Conteudo desta licao ainda nao disponivel.
               </p>
             </div>
           )}
+
+          {!content && practice.length > 0 && <PracticeExercise questions={practice} />}
         </div>
+
+        {content && practice.length > 0 && (
+          <section className="rounded-lg border bg-card p-4 lg:p-6 space-y-4" aria-labelledby="pratique">
+            <div>
+              <h2 id="pratique" className="text-lg font-semibold">Pratique</h2>
+              <p className="text-sm text-muted-foreground">
+                Responda para fixar o conteudo. Cada acerto vale XP na primeira vez.
+              </p>
+            </div>
+            <PracticeExercise questions={practice} />
+          </section>
+        )}
 
         {/* Bottom navigation */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

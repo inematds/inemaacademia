@@ -90,7 +90,7 @@ src/
 sql/                         # Scripts SQL de seed
 ├── seed-materias.sql        # Subjects + Courses + Units iniciais (BNCC)
 ├── seed-6ano-curriculum.sql # Unidades e licoes do 6° ano
-└── seed-extracurricular-inema.sql  # Cursos extracurriculares
+└── seed-extracurricular-inema.sql  # LEGADO (quebrado); use apply-extracurricular-seed.ts
 
 seed-7-8-9ano.ts             # Script TS para popular 7°-9° ano com conteudo rico
 apply-extracurricular-seed.ts # Script TS para popular cursos INEMA Club
@@ -193,12 +193,13 @@ cp .env.example .env.local
 #   DATABASE_URL=
 #   ANTHROPIC_API_KEY= (opcional, para tutor IA)
 
-# 4. Execute as migracoes SQL no Supabase
-# Acesse o SQL Editor do Supabase e execute em ordem:
-#   src/db/migrations/0001_schema.sql
-#   src/db/migrations/0002_auth_trigger_and_rls.sql
-#   sql/seed-materias.sql
-#   sql/seed-6ano-curriculum.sql
+# 4. Banco: as migracoes oficiais ficam em supabase/migrations/ (na ordem certa)
+#   Local (Docker):  npx supabase start      (aplica migrations + seeds do config.toml)
+#   Hospedado:       npx supabase link && npx supabase db push
+#                    depois rode sql/seed-materias.sql, sql/migration-grade-levels.sql
+#                    e sql/seed-6ano-curriculum.sql
+#   Passo a passo completo e contas de teste: REVISAO-2026-10.md
+#   (src/db/migrations/ e o historico antigo do drizzle; nao rode no banco)
 
 # 5. (Opcional) Popule conteudo das series com HTML rico
 export $(grep -v '^#' .env.local | xargs)

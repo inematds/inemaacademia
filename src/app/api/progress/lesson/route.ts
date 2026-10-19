@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { calculateXpGain, calculateLevel } from "@/services/xp";
 import { updateStreak } from "@/services/streak";
+import { hojeBR } from "@/lib/dates";
 import { checkBadgeConditions, type StudentStats } from "@/services/badges";
 import { progressLimiter } from "@/lib/rate-limit";
 
@@ -153,7 +154,7 @@ export async function POST(request: NextRequest) {
     const leveledUp = newLevel > oldLevel;
 
     // Update student stats
-    const today = new Date().toISOString().split("T")[0];
+    const today = hojeBR();
     await supabase
       .from("student_stats")
       .update({
@@ -229,11 +230,12 @@ export async function POST(request: NextRequest) {
       .eq("student_id", studentId)
       .eq("mastery_level", "mastered");
 
+    // "Primeiro Exercicio" = primeira questao acertada; concluir artigo nao conta
     const { count: totalExercisesCompleted } = await supabase
-      .from("lesson_progress")
+      .from("student_answers")
       .select("id", { count: "exact", head: true })
       .eq("student_id", studentId)
-      .eq("status", "completed");
+      .eq("is_correct", true);
 
     const { count: totalCoursesCompleted } = await supabase
       .from("course_progress")

@@ -42,6 +42,7 @@ export default async function AdminUnitsPage() {
     courseId: u.course_id as string,
     order: u.order as number,
     isActive: u.is_active as boolean,
+    gradeLevel: (u.grade_level as string) ?? null,
   }));
 
   const formattedCourses = (courses ?? []).map((c: Record<string, unknown>) => {

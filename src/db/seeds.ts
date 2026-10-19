@@ -1,3 +1,4 @@
+// LEGADO: cria dados ficticios via drizzle. Para teste local use scripts/seed-local.ts (revisao 19/10/2026).
 import "dotenv/config";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";

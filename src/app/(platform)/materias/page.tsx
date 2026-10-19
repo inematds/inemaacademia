@@ -123,12 +123,29 @@ export default async function MateriasPage() {
       .eq("is_active", true)
       .order("order"),
     user
-      ? supabase.from("profiles").select("grade_level").eq("id", user.id).single()
+      ? supabase.from("profiles").select("role, grade_level").eq("id", user.id).single()
       : Promise.resolve({ data: null }),
   ]);
 
   const gradeLevel = profileResult?.data?.grade_level ?? null;
-  const subjects = (subjectsList ?? []).map((s) => ({ ...s, progress: 0 }));
+  const isStudent = !profileResult?.data || profileResult.data.role === "aluno";
+
+  // Aluno nao ve materia sem nenhuma licao ativa (ex.: Vida Pratica ainda vazia).
+  let withLessons: Set<string> | null = null;
+  if (isStudent) {
+    const { data: rows } = await supabase
+      .from("lessons")
+      .select("units!inner(courses!inner(subject_id))")
+      .eq("is_active", true);
+    withLessons = new Set(
+      ((rows ?? []) as unknown as Array<{ units: { courses: { subject_id: string } } }>).map(
+        (r) => r.units.courses.subject_id,
+      ),
+    );
+  }
+  const subjects = (subjectsList ?? [])
+    .filter((s) => !withLessons || withLessons.has(s.id))
+    .map((s) => ({ ...s, progress: 0 }));
 
   const curricular = subjects.filter((s) => s.category === "curricular");
   const extracurricular = subjects.filter((s) => s.category === "extracurricular");

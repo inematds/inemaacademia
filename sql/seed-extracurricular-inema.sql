@@ -1,3 +1,4 @@
+-- LEGADO: nao rodar. Usa coluna que nao existe mais; o seed valido e apply-extracurricular-seed.ts (revisao 19/10/2026).
 -- =============================================================
 -- INEMA.CLUB Trilha Iniciantes - 4 Extracurricular Courses
 -- FEP, ATIA, FDB → Tecnologia e Inovacao

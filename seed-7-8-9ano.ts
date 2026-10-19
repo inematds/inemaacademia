@@ -16,7 +16,10 @@ async function insertUnit(courseId: string, name: string, slug: string, desc: st
   const { data: existing } = await supabase.from("units").select("id").eq("slug", slug).single();
   if (existing) { console.log(`  Unit exists: ${name}`); return existing.id; }
   const id = randomUUID();
-  const { error } = await supabase.from("units").insert({ id, course_id: courseId, name, slug, description: desc, order, is_active: true });
+  // Serie da unidade vem do nome: "Funcoes (9° ano)" -> "9-fund" (coluna units.grade_level)
+  const serie = name.match(/\((\d)\s*[°º]\s*ano\)/);
+  const grade_level = serie ? `${serie[1]}-fund` : null;
+  const { error } = await supabase.from("units").insert({ id, course_id: courseId, name, slug, description: desc, order, is_active: true, grade_level });
   if (error) throw new Error(`Unit ${slug}: ${error.message}`);
   console.log(`  Unit: ${name}`);
   return id;

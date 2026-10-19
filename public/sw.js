@@ -1,6 +1,10 @@
 /// Service Worker for INEMA Academia - Offline Support
 
-const CACHE_NAME = "inema-academia-v1";
+// v2 (0.3.0): paginas HTML nao sao mais guardadas. Antes o stale-while-revalidate
+// devolvia a pagina antiga ao recarregar (XP, progresso e licao concluida
+// desatualizados) e, em computador compartilhado da escola, deixava as paginas
+// de um aluno no cache para o proximo. Trocar o nome apaga o cache antigo.
+const CACHE_NAME = "inema-academia-v2";
 const OFFLINE_URL = "/offline";
 
 // Static assets to precache
@@ -72,40 +76,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // HTML pages - stale-while-revalidate with offline fallback
-  if (request.headers.get("accept")?.includes("text/html")) {
-    event.respondWith(
-      caches.match(request).then((cached) => {
-        const fetchPromise = fetch(request)
-          .then((response) => {
-            if (response.ok) {
-              const clone = response.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-            }
-            return response;
-          })
-          .catch(() => {
-            // Offline: return cached page or offline fallback
-            return cached || caches.match(OFFLINE_URL);
-          });
-
-        // Return cached version immediately, update in background
-        return cached || fetchPromise;
-      })
-    );
+  // HTML pages - sempre da rede; sem internet, mostra a pagina offline
+  if (request.mode === "navigate" || request.headers.get("accept")?.includes("text/html")) {
+    event.respondWith(fetch(request).catch(() => caches.match(OFFLINE_URL)));
     return;
   }
 
-  // Other requests - network first with cache fallback
-  event.respondWith(
-    fetch(request)
-      .then((response) => {
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-        }
-        return response;
-      })
-      .catch(() => caches.match(request))
-  );
+  // Demais pedidos (RSC, dados) - so rede, sem guardar dados do usuario
 });

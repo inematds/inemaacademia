@@ -1,18 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { getMasteryFromCorrectStreak } from "@/services/mastery";
+import { getMasteryFromCorrectStreak, keepHighestMastery } from "@/services/mastery";
 import { calculateXpGain, calculateLevel } from "@/services/xp";
 import { updateStreak } from "@/services/streak";
+import { hojeBR } from "@/lib/dates";
 import { checkBadgeConditions, type StudentStats } from "@/services/badges";
 import { progressLimiter } from "@/lib/rate-limit";
+import { correctIndexOf } from "@/lib/exercise-grading";
 
+// A correcao e feita aqui, com o gabarito do banco. Antes o navegador
+// mandava isCorrect e a API acreditava (dava para ganhar XP sem responder).
+// `answer` = indice da alternativa escolhida (0, 1, 2...).
 const recordAnswerSchema = z.object({
   questionId: z.guid(),
-  answer: z.unknown(),
-  isCorrect: z.boolean(),
-  timeSpent: z.number().int().min(0),
+  answer: z.number().int().min(0).max(20),
+  timeSpent: z.number().int().min(0).max(24 * 3600).default(0),
 });
+
+type QuestionRow = {
+  id: string;
+  exercise_id: string;
+  points: number;
+  type: string;
+  options: unknown;
+  correct_answer: unknown;
+  explanation: string | null;
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,15 +66,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { questionId, answer, isCorrect, timeSpent } = parsed.data;
+    const { questionId, answer, timeSpent } = parsed.data;
     const studentId = user.id;
 
     // Get question and its exercise/lesson
-    const { data: question } = await supabase
+    const { data: questionData } = await supabase
       .from("questions")
-      .select("id, exercise_id, points")
+      .select("id, exercise_id, points, type, options, correct_answer, explanation")
       .eq("id", questionId)
       .single();
+    const question = questionData as QuestionRow | null;
 
     if (!question) {
       return NextResponse.json(
@@ -91,6 +106,18 @@ export async function POST(request: NextRequest) {
 
     const attemptNumber = (attemptCount ?? 0) + 1;
 
+    const correctIndex = correctIndexOf(question);
+    const isCorrect = correctIndex >= 0 && answer === correctIndex;
+
+    // XP so no primeiro acerto de cada questao (repetir nao acumula pontos)
+    const { count: previousCorrect } = await supabase
+      .from("student_answers")
+      .select("id", { count: "exact", head: true })
+      .eq("student_id", studentId)
+      .eq("question_id", questionId)
+      .eq("is_correct", true);
+    const firstCorrect = isCorrect && (previousCorrect ?? 0) === 0;
+
     // Record the answer
     await supabase.from("student_answers").insert({
       student_id: studentId,
@@ -103,7 +130,7 @@ export async function POST(request: NextRequest) {
 
     // Calculate XP
     let xpGained = 0;
-    if (isCorrect) {
+    if (firstCorrect) {
       xpGained = calculateXpGain("correct_answer");
     }
 
@@ -128,11 +155,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const mastery = getMasteryFromCorrectStreak(correctStreak);
     const previousMasteryLevel = await getCurrentMasteryLevel(
       supabase,
       studentId,
       exercise.lesson_id,
+    );
+    // Dominio nao cai com um erro: antes, errar uma vez zerava o nivel e
+    // acertar 3 seguidas dava de novo o bonus de 150 XP (dava para farmar).
+    const mastery = keepHighestMastery(
+      getMasteryFromCorrectStreak(correctStreak),
+      previousMasteryLevel,
     );
 
     // Upsert skill mastery
@@ -212,7 +244,7 @@ export async function POST(request: NextRequest) {
     const newLevel = calculateLevel(newTotalXp);
     const leveledUp = newLevel > oldLevel;
 
-    const today = new Date().toISOString().split("T")[0];
+    const today = hojeBR();
     await supabase
       .from("student_stats")
       .update({
@@ -253,11 +285,12 @@ export async function POST(request: NextRequest) {
       .eq("student_id", studentId)
       .eq("mastery_level", "mastered");
 
+    // "Primeiro Exercicio" = primeira questao acertada (antes contava licao concluida)
     const { count: totalExercisesCompleted } = await supabase
-      .from("lesson_progress")
+      .from("student_answers")
       .select("id", { count: "exact", head: true })
       .eq("student_id", studentId)
-      .eq("status", "completed");
+      .eq("is_correct", true);
 
     const { count: totalCoursesCompleted } = await supabase
       .from("course_progress")
@@ -315,6 +348,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       isCorrect,
+      correctIndex,
+      explanation: question.explanation ?? null,
       xpGained,
       totalXp: newTotalXp,
       level: newLevel,

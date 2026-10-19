@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   GraduationCap,
   Trophy,
-  Settings,
   Menu,
   Flame,
   Zap,
@@ -57,6 +56,13 @@ const navItems = [
   { href: "/aluno/progresso", label: "Progresso", icon: GraduationCap },
   { href: "/aluno/badges", label: "Conquistas", icon: Trophy },
 ];
+
+// Professor e admin nao tem XP nem painel de aluno: so materias + a area deles.
+const navProfessor = [
+  { href: "/materias", label: "Materias", icon: BookOpen },
+  { href: "/professor", label: "Minhas turmas", icon: GraduationCap },
+];
+const navAdmin = [{ href: "/materias", label: "Materias", icon: BookOpen }];
 
 // Caminhos intermediarios que nao sao paginas (evita links/prefetch 404)
 const BREADCRUMB_SEM_PAGINA = new Set(["/licao", "/aluno/turma", "/professor/aluno", "/admin/exercicios"]);
@@ -128,6 +134,8 @@ export function PlatformShell({
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const breadcrumbs = getBreadcrumbs(pathname);
+  const isStudent = user.role === "aluno";
+  const items = isStudent ? navItems : user.role === "professor" ? navProfessor : navAdmin;
 
   const sidebarContent = (
     <nav aria-label="Menu principal" className="flex flex-col gap-1 p-4">
@@ -142,7 +150,7 @@ export function PlatformShell({
         <span className="text-lg font-bold tracking-tight">INEMA Academia</span>
       </Link>
 
-      {navItems.map((item) => {
+      {items.map((item) => {
         const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
         return (
           <Link
@@ -243,22 +251,26 @@ export function PlatformShell({
           </nav>
 
           <div className="ml-auto flex items-center gap-3">
-            {/* Streak */}
-            <div className="flex items-center gap-1.5 text-sm" aria-label={`Sequencia de ${stats.currentStreak} dias`}>
-              <Flame className="size-4 text-orange-500" aria-hidden="true" />
-              <span className="font-medium">{stats.currentStreak}</span>
-            </div>
+            {isStudent && (
+              <>
+              {/* Streak */}
+              <div className="flex items-center gap-1.5 text-sm" aria-label={`Sequencia de ${stats.currentStreak} dias`}>
+                <Flame className="size-4 text-orange-500" aria-hidden="true" />
+                <span className="font-medium">{stats.currentStreak}</span>
+              </div>
 
-            {/* XP */}
-            <div className="flex items-center gap-1.5 text-sm" aria-label={`${stats.totalXp} pontos de experiencia`}>
-              <Zap className="size-4 text-yellow-500" aria-hidden="true" />
-              <span className="font-medium">{stats.totalXp} XP</span>
-            </div>
+              {/* XP */}
+              <div className="flex items-center gap-1.5 text-sm" aria-label={`${stats.totalXp} pontos de experiencia`}>
+                <Zap className="size-4 text-yellow-500" aria-hidden="true" />
+                <span className="font-medium">{stats.totalXp} XP</span>
+              </div>
 
-            {/* Level badge */}
-            <Badge variant="secondary" className="hidden sm:inline-flex">
-              Nv. {stats.level}
-            </Badge>
+              {/* Level badge */}
+              <Badge variant="secondary" className="hidden sm:inline-flex">
+                Nv. {stats.level}
+              </Badge>
+              </>
+            )}
 
             {/* User dropdown */}
             <DropdownMenu>
@@ -282,12 +294,6 @@ export function PlatformShell({
                   <Link href="/perfil" className="cursor-pointer">
                     <User className="mr-2 size-4" />
                     Perfil
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/perfil" className="cursor-pointer">
-                    <Settings className="mr-2 size-4" />
-                    Configuracoes
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

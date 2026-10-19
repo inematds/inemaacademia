@@ -99,7 +99,7 @@ export default async function SubjectCoursesPage({
       .eq("is_active", true)
       .order("order"),
     user
-      ? supabase.from("profiles").select("grade_level").eq("id", user.id).single()
+      ? supabase.from("profiles").select("role, grade_level").eq("id", user.id).single()
       : Promise.resolve({ data: null }),
     user
       ? supabase.from("student_enrollments").select("course_id").eq("student_id", user.id)
@@ -107,6 +107,8 @@ export default async function SubjectCoursesPage({
   ]);
 
   const gradeLevel = profileResult?.data?.grade_level ?? null;
+  // Aluno (ou visitante) nao ve curso sem licao; admin/professor veem tudo.
+  const isStudent = !profileResult?.data || profileResult.data.role === "aluno";
   const isCurricular = subject.category === "curricular";
   const enrolledIds = (enrollResult?.data ?? []).map((r: { course_id: string }) => r.course_id);
 
@@ -116,14 +118,17 @@ export default async function SubjectCoursesPage({
   const { data: unitRows } = courseIds.length
     ? await supabase
         .from("units")
-        .select("course_id, lessons(id, is_active)")
+        .select("course_id, grade_level, lessons(id, is_active)")
         .in("course_id", courseIds)
         .eq("is_active", true)
-    : { data: [] as Array<{ course_id: string; lessons: Array<{ id: string; is_active: boolean }> }> };
+    : { data: [] as Array<{ course_id: string; grade_level: string | null; lessons: Array<{ id: string; is_active: boolean }> }> };
   const lessonsByCourse = new Map<string, string[]>();
-  for (const u of (unitRows ?? []) as Array<{ course_id: string; lessons: Array<{ id: string; is_active: boolean }> | null }>) {
+  // Cursos que tem unidade com licao da serie do aluno (ex.: Algebra tem unidade do 7o ano)
+  const coursesWithMyGrade = new Set<string>();
+  for (const u of (unitRows ?? []) as Array<{ course_id: string; grade_level: string | null; lessons: Array<{ id: string; is_active: boolean }> | null }>) {
     const ids = (u.lessons ?? []).filter((l) => l.is_active).map((l) => l.id);
     lessonsByCourse.set(u.course_id, [...(lessonsByCourse.get(u.course_id) ?? []), ...ids]);
+    if (gradeLevel && u.grade_level === gradeLevel && ids.length > 0) coursesWithMyGrade.add(u.course_id);
   }
   const allLessonIds = [...lessonsByCourse.values()].flat();
   const { data: doneRows } =
@@ -145,7 +150,8 @@ export default async function SubjectCoursesPage({
       !isCurricular ||
       !gradeLevel ||
       !course.grade_levels ||
-      course.grade_levels.split(",").includes(gradeLevel);
+      course.grade_levels.split(",").includes(gradeLevel) ||
+      coursesWithMyGrade.has(course.id);
     return {
       id: course.id,
       name: course.name,
@@ -159,13 +165,17 @@ export default async function SubjectCoursesPage({
     };
   });
 
+  const visibleCourses = isStudent
+    ? coursesWithData.filter((c) => c.totalLessons > 0)
+    : coursesWithData;
+
   // Sort: matching grade first
   const sortedCourses = isCurricular && gradeLevel
     ? [
-        ...coursesWithData.filter((c) => c.matchesGrade),
-        ...coursesWithData.filter((c) => !c.matchesGrade),
+        ...visibleCourses.filter((c) => c.matchesGrade),
+        ...visibleCourses.filter((c) => !c.matchesGrade),
       ]
-    : coursesWithData;
+    : visibleCourses;
 
   const Icon = iconMap[subject.icon ?? "book"] ?? BookOpen;
 

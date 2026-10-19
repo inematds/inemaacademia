@@ -1,3 +1,4 @@
+-- LEGADO: duplicado de 0002_auth_trigger_and_rls.sql. Migracoes oficiais em supabase/migrations/ (revisao 19/10/2026).
 -- =============================================================================
 -- RLS (Row Level Security) Policies for INEMA Academia
 -- =============================================================================

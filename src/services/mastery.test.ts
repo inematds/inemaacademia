@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getMasteryFromCorrectStreak } from "@/services/mastery";
+import { getMasteryFromCorrectStreak, keepHighestMastery } from "@/services/mastery";
 
 describe("getMasteryFromCorrectStreak", () => {
   it("retorna not_started para streak 0", () => {
@@ -17,5 +17,17 @@ describe("getMasteryFromCorrectStreak", () => {
 
   it("retorna mastered para streak 3+", () => {
     expect(getMasteryFromCorrectStreak(3)).toEqual({ level: "mastered", points: 100 });
+  });
+});
+
+describe("keepHighestMastery", () => {
+  it("um erro depois de dominar nao derruba o nivel (sem bonus repetido)", () => {
+    expect(keepHighestMastery({ level: "not_started", points: 0 }, "mastered")).toEqual({ level: "mastered", points: 100 });
+  });
+  it("sobe quando o novo nivel e maior", () => {
+    expect(keepHighestMastery({ level: "proficient", points: 80 }, "familiar")).toEqual({ level: "proficient", points: 80 });
+  });
+  it("nivel anterior desconhecido conta como nao iniciado", () => {
+    expect(keepHighestMastery({ level: "familiar", points: 50 }, "x")).toEqual({ level: "familiar", points: 50 });
   });
 });

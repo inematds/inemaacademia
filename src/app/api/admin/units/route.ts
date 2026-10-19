@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Dados invalidos", details: parsed.error.flatten() }, { status: 400 });
   }
-  const { name, slug, description, courseId } = parsed.data;
+  const { name, slug, description, courseId, gradeLevel } = parsed.data;
 
   const { data: last } = await supabase
     .from("units")
@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
       slug: slug || slugify(name),
       description: description || null,
       order: (last?.order ?? 0) + 1,
+      grade_level: gradeLevel ?? null,
       is_active: true,
     })
     .select("id")

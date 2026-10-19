@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { GRADE_LEVEL_LABELS } from "@/lib/admin-content";
 import {
   Table,
   TableBody,
@@ -40,7 +41,11 @@ interface Unit {
   courseId: string;
   order: number;
   isActive: boolean;
+  gradeLevel: string | null;
 }
+
+// "todas" = unidade sem serie (aparece para qualquer aluno)
+const SEM_SERIE = "todas";
 
 interface Course {
   id: string;
@@ -64,6 +69,7 @@ export function UnitsAdmin({ initialUnits, courses }: Props) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [courseId, setCourseId] = useState("");
+  const [gradeLevel, setGradeLevel] = useState<string>(SEM_SERIE);
 
   const filteredUnits =
     filterCourse === "all"
@@ -75,6 +81,7 @@ export function UnitsAdmin({ initialUnits, courses }: Props) {
     setName("");
     setDescription("");
     setCourseId(courses[0]?.id ?? "");
+    setGradeLevel(SEM_SERIE);
     setDialogOpen(true);
   }
 
@@ -83,6 +90,7 @@ export function UnitsAdmin({ initialUnits, courses }: Props) {
     setName(unit.name);
     setDescription(unit.description ?? "");
     setCourseId(unit.courseId);
+    setGradeLevel(unit.gradeLevel ?? SEM_SERIE);
     setDialogOpen(true);
   }
 
@@ -100,7 +108,13 @@ export function UnitsAdmin({ initialUnits, courses }: Props) {
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)/g, "");
 
-      const body = { name, slug, description, courseId };
+      const body = {
+        name,
+        slug,
+        description,
+        courseId,
+        gradeLevel: gradeLevel === SEM_SERIE ? null : gradeLevel,
+      };
 
       const res = await fetch(
         editing ? `/api/admin/units/${editing.id}` : "/api/admin/units",
@@ -174,6 +188,7 @@ export function UnitsAdmin({ initialUnits, courses }: Props) {
             <TableRow>
               <TableHead>Nome</TableHead>
               <TableHead>Curso</TableHead>
+              <TableHead>Serie</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Acoes</TableHead>
             </TableRow>
@@ -181,7 +196,7 @@ export function UnitsAdmin({ initialUnits, courses }: Props) {
           <TableBody>
             {filteredUnits.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                <TableCell colSpan={5} className="text-center text-muted-foreground">
                   Nenhuma unidade encontrada.
                 </TableCell>
               </TableRow>
@@ -190,6 +205,9 @@ export function UnitsAdmin({ initialUnits, courses }: Props) {
               <TableRow key={unit.id}>
                 <TableCell className="font-medium">{unit.name}</TableCell>
                 <TableCell>{getCourseName(unit.courseId)}</TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {unit.gradeLevel ? GRADE_LEVEL_LABELS[unit.gradeLevel] ?? unit.gradeLevel : "Todas"}
+                </TableCell>
                 <TableCell>
                   <Badge variant={unit.isActive ? "default" : "secondary"}>
                     {unit.isActive ? "Ativo" : "Inativo"}
@@ -240,6 +258,25 @@ export function UnitsAdmin({ initialUnits, courses }: Props) {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Serie</Label>
+              <Select value={gradeLevel} onValueChange={setGradeLevel}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={SEM_SERIE}>Todas as series</SelectItem>
+                  {Object.entries(GRADE_LEVEL_LABELS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                O aluno ve primeiro as unidades da serie dele.
+              </p>
             </div>
             <div className="space-y-2">
               <Label>Descricao</Label>

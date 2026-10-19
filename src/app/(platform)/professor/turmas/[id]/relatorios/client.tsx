@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formataDataBR } from "@/lib/dates";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -276,9 +277,7 @@ export function ReportsClient({
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold">
                 {selectedStudent.lastActive
-                  ? new Date(selectedStudent.lastActive).toLocaleDateString(
-                      "pt-BR"
-                    )
+                  ? formataDataBR(selectedStudent.lastActive)
                   : "-"}
               </div>
               <div className="text-xs text-muted-foreground">
@@ -510,9 +509,7 @@ export function ReportsClient({
                         </TableCell>
                         <TableCell className="text-center text-xs text-muted-foreground hidden md:table-cell">
                           {student.lastActive
-                            ? new Date(
-                                student.lastActive
-                              ).toLocaleDateString("pt-BR")
+                            ? formataDataBR(student.lastActive)
                             : "-"}
                         </TableCell>
                       </TableRow>

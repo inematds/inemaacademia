@@ -58,6 +58,21 @@ describe("updateStreak", () => {
     });
   });
 
+  it("primeira atividade no dia do cadastro conta 1 (perfil nascia com streak 0 e data de hoje)", () => {
+    const result = updateStreak("2026-03-05", 0, 0);
+    expect(result).toEqual({
+      currentStreak: 1,
+      longestStreak: 1,
+      xpBonus: 0,
+    });
+  });
+
+  it("usa a data de Brasilia passada em today (23h BRT = dia seguinte em UTC)", () => {
+    const result = updateStreak("2026-03-04", 2, 2, "2026-03-04");
+    expect(result.currentStreak).toBe(2);
+    expect(updateStreak("2026-03-04", 2, 2, "2026-03-05").currentStreak).toBe(3);
+  });
+
   it("preserva longestStreak no reset", () => {
     const result = updateStreak("2026-01-01", 3, 20);
     expect(result).toEqual({
